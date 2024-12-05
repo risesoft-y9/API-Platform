@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * @author : lxd
  * @description : 用于统计首页可视化的统计数据
- * @createDate : 2024/10/30 14:48
+ * @createDate : 2024/10/30 14:48:00
  */
 @RestController
 @RequestMapping("/api/rest/statistics")
