@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * 外部调用
- *
+ * 
  * @author duanzhixin
  */
 @Controller
@@ -26,7 +26,7 @@ public class UseInterfaceController {
     /**
      * 接口转发
      *
-     * @param userKey
+     * @param userKey 用户秘钥
      * @return
      */
     @RiseLog(operationType = OperationTypeEnum.SEND, operationName = "接口转发")
