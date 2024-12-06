@@ -24,8 +24,10 @@ public interface InterfaceManageService {
 
     //删除接口信息
     Map<String,String> delInterfaceInfo(String id);
+
     //删除权限信息
     Map<String,String> delAuthInfoById(String id);
+
     //根据id查询服务器信息
     InterfaceManageDTO getInterfaceInfoById(String id);
 
@@ -35,8 +37,10 @@ public interface InterfaceManageService {
     //停用接口
     Map<String,Object> stopInterface(InterfaceApplyDTO apply);
 
+    //保存接口信息
     Map<String,Object> saveInterfaceInfo(InterfaceManageDTO interfaceManageDTO);
 
+    //版本更新
     Map<String,Object> updateVersionInfo(InterfaceManageDTO interfaceManageDTO);
 
     //根据id查询权限信息
