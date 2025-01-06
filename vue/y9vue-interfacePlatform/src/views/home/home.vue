@@ -117,7 +117,7 @@ const fetchTableData = async (
     } else {
       dataRef.value = [];
       pagination.value.total = 0;
-      ElMessage.error(errorMessage);
+      // ElMessage.error(errorMessage);
     }
   } finally {
     pagination.value.loading = false;
@@ -149,11 +149,11 @@ async function fetchOverviewData() {
       overviewData.value.stopCount = res.data.stopCount || 0;
       overviewData.value.runningCount = res.data.runningCount || 0;
     } else {
-      ElMessage.error('获取接口概况数据失败');
+      // ElMessage.error('获取接口概况数据失败');
     }
 
   } catch (error) {
-    console.error('获取接口概况数据失败:', error);
+    // console.error('获取接口概况数据失败:', error);
   }
 };
 
@@ -164,10 +164,10 @@ async function fetchRunningCountData() {
       runningCountData.value.normalCount = res.data.normalCount || 0
       runningCountData.value.abnormalCount = res.data.abnormalCount || 0
     } else {
-      ElMessage.error('获取接口运行状态数据失败');
+      // ElMessage.error('获取接口运行状态数据失败');
     }
   } catch (error) {
-    console.error('获取接口运行状态数据失败:', error);
+    // console.error('获取接口运行状态数据失败:', error);
   }
 };
 
@@ -182,10 +182,10 @@ const fetchTrendData = async () => {
       };
       updateTrendChart();
     } else {
-      ElMessage.error('获取接口趋势图数据失败');
+      // ElMessage.error('获取接口趋势图数据失败');
     }
   } catch (error) {
-    console.error('获取接口趋势图数据失败:', error);
+    // console.error('获取接口趋势图数据失败:', error);
   }
 };
 
@@ -199,11 +199,11 @@ async function fetchLogOverviewData() {
       logOverviewData.value.todayAllTotal = res.data.todayAllTotal || 0;
       logOverviewData.value.todayAllErrorTotal = res.data.todayAllErrorTotal || 0;
     } else {
-      ElMessage.error('获取日志概况数据失败');
+      // ElMessage.error('获取日志概况数据失败');
     }
 
   } catch (error) {
-    console.error('获取日志概况数据失败:', error);
+    // console.error('获取日志概况数据失败:', error);
   }
 };
 

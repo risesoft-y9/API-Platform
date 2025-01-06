@@ -130,6 +130,8 @@ import { useRoute } from 'vue-router';
 import { nextTick } from 'vue';
 import VueJsonPretty from 'vue-json-pretty';
 import 'vue-json-pretty/lib/styles.css'
+import y9_storage from '@/utils/storage';
+import settings from '@/settings';
 
 // 注入 字体对象
 const fontSizeObj: any = inject('sizeObjInfo');
@@ -611,7 +613,7 @@ let ruleFormConfig = ref({
         interfaceMethod: [{ required: true, message: computed(() => t('请求方式不能为空')), trigger: 'blur' }],
         networkAgreement: [{ required: true, message: computed(() => t('网络协议不能为空')), trigger: 'blur' }],
         head: [{ required: true, message: computed(() => t('接口负责人不能为空')), trigger: 'blur' }],
-        isResponseFile: [{ required: true, message: computed(() => t('是否返回文件')), trigger: 'blur' }],
+        isResponseFile: [{ required: true, message: computed(() => t('是否返回文件不能为空')), trigger: 'blur' }],
         headPhone: [{ required: true, message: computed(() => t('接口负责人联系方式不能为空')), trigger: 'blur' }
             , { validator: validatePhone, trigger: 'blur' }
         ],
@@ -688,11 +690,10 @@ let ruleFormConfig = ref({
             label: computed(() => t('是否返回文件')),
             prop: 'isResponseFile',
             props: {
-                disabled: true,
                 options: [
                     //选项列表
-                    { label: computed(() => t('是')), value: 'true' },
-                    { label: computed(() => t('否')), value: 'false' }
+                    { label: computed(() => t('是')), value: true },
+                    { label: computed(() => t('否')), value: false }
                 ]
             }
         },
@@ -904,10 +905,10 @@ function confirDialog(type) {
 async function addDialog() {
     ruleFormConfig.value.model = {}
     ruleFormConfig.value.model.networkAgreement = "http"
-    ruleFormConfig.value.model.interfaceUrl = "192.168.31.94:7055/interfacePlatform/openInterface/test"
+    ruleFormConfig.value.model.interfaceUrl = "127.0.0.1:7055/interfaceExecute/openInterface/forward"
     ruleFormConfig.value.model.interfaceType = "Rest"
     ruleFormConfig.value.model.interfaceMethod = "post"
-    ruleFormConfig.value.model.isResponseFile = "false"
+    ruleFormConfig.value.model.isResponseFile = true
     initFormData()
     let res = await getInterfaceId()
     ruleFormConfig.value.model.id = res.data
@@ -1196,25 +1197,45 @@ const submitData = () => {
             }
 
             data.reqParameters = JSON.stringify(reqData)
-            let res = await testInterface(
-                data
-            );
-            if (data.isResponseFile == "true") {
-                const a = document.createElement('a')
-                a.href = URL.createObjectURL(new Blob(res, { type: 'application/octet-stream' }))
 
-                // 获取文件名
-                const contentDisposition = res.headers.get('Content-Disposition');
-                let fileName = '流文件';
-                if (contentDisposition && contentDisposition.includes('attachment')) {
-                    const match = contentDisposition.match(/filename="(["]*)"/);
-                    if (match) {
-                        fileName = match;
-                    }
-                }
-                a.download = fileName
-                a.click()
+            const access_token = y9_storage.getObjectItem(settings.siteTokenKey, 'access_token');
+
+            if (data.isResponseFile) {
+                let contentDisposition = "";
+                fetch(import.meta.env.VUE_APP_NODE_CONTEXT + 'api/rest/interface/testInterface', {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: new Headers({
+                        'Authorization': 'Bearer ' + access_token,
+                        'Content-Type':'application/json',
+                        'Accept':'*/*'
+                    }),
+                })
+                    .then(res => {
+                        contentDisposition = res.headers.get("content-disposition")
+                        return res.blob()})
+                    .then(data => {
+                        const blobUrl = window.URL.createObjectURL(data);
+                        const a = document.createElement('a');
+                        let fileName = '流文件';
+                        if (contentDisposition && contentDisposition.includes('attachment')) {
+                            const match = contentDisposition.match(/filename="?([^";]*)"?/);
+                            if (match) {
+                                fileName = decodeURIComponent(match[1]);
+                            }
+                            console.log(match)
+                        }
+                        a.download = fileName;
+                        a.href = blobUrl;
+                        a.click();
+                        loading.value = false
+                        window.URL.revokeObjectURL(blobUrl);
+
+                    });
             } else {
+                let res = await testInterface(
+                    data
+                );
                 if (res.code == 0) {
 
                     ElMessage({

@@ -20,6 +20,7 @@ import { $y9_SSO } from '@/main';
 // 创建一个axios实例
 function y9Request(baseUrl = '') {
     let requestList = new Set();
+    let isDowFile = false;
 
     const service = axios.create({
         baseURL: import.meta.env.VUE_APP_NODE_CONTEXT,
@@ -46,7 +47,7 @@ function y9Request(baseUrl = '') {
                 config.headers['Authorization'] = 'Bearer ' + access_token;
             }
             config.headers['Accept'] = '*/*'
-
+            isDowFile = config.isDowFile;
             return config;
         },
         (error) => {
@@ -69,7 +70,7 @@ function y9Request(baseUrl = '') {
                 res = response;
             }
             const { code } = res;
-            if (code !== 0) {
+            if (code!=undefined && code !== 0) {
                 // 获取替换后的字符串
                 const reqUrl = response.config.url.split('?')[0].replace(response.config.baseURL, '');
                 const noVerifyBool = settings.ajaxResponseNoVerifyUrl.includes(reqUrl);
@@ -126,6 +127,9 @@ function y9Request(baseUrl = '') {
 				}
               
             } else {
+                if(isDowFile){
+                    return response;
+                }
                 return res;
             }
         },

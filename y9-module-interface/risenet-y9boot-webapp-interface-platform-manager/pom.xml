@@ -221,7 +221,7 @@
     </pluginRepositories>
 
     <build>
-        <finalName>Y9-interfaceManagementPlatform</finalName>
+        <finalName>interfaceManager</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

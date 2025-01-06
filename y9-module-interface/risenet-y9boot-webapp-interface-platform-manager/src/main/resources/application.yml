@@ -5,7 +5,7 @@ server:
   error:
     include-message: always
   servlet:
-    context-path: /interfacePlatform
+    context-path: /interfaceManager
     register-default-servlet: true
     encoding:
       charset: UTF-8
@@ -17,7 +17,7 @@ server:
     uri-encoding: UTF-8
 spring:
   application:
-    name: interfacePlatform
+    name: interfaceManager
   aop:
     auto: false
     proxy-target-class: false
@@ -71,7 +71,7 @@ spring:
         useGlobalDataSourceStat: true
         validationQuery: SELECT 1 FROM DUAL
   jmx:
-    default-domain: interfacePlatform
+    default-domain: interfaceManager
   jpa:
     hibernate:
       naming:
@@ -126,7 +126,7 @@ spring:
       maxRequestSize: 1000MB
 y9:
   interfacePath: /home
-  systemName: interfacePlatform
+  systemName: interfaceManager
   common:
     idEnabled: 0
     kafkaEnabled: false

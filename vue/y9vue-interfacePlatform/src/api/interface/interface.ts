@@ -58,13 +58,25 @@ export const saveInterfaceInfo = async (data) => {
  * @returns 
  */
 export const testInterface = async (data) => {
-    return await nodeRequest({
-        url: "/api/rest/interface/testInterface",
-        method: 'POST',
-        JSON:true,
-        cType: false,
-        data
-    });
+    if(data.isResponseFile){
+        return await nodeRequest({
+            url: "/api/rest/interface/testInterface",
+            method: 'POST',
+            JSON:true,
+            cType: false,
+            isDowFile: true,
+            responseType:'blob',
+            data
+        });
+    }else{
+        return await nodeRequest({
+            url: "/api/rest/interface/testInterface",
+            method: 'POST',
+            JSON:true,
+            cType: false,
+            data
+        });
+    }
 };
 
 /**

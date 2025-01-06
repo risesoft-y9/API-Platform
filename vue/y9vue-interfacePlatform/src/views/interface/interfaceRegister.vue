@@ -725,6 +725,7 @@ let ruleFormConfig = ref({
         ],
         interfaceType:[{required: true, message: computed(() => t('接口类型不能为空')), trigger: 'blur'}],
         interfaceMethod:[{required: true, message: computed(() => t('请求方式不能为空')), trigger: 'blur'}],
+        isResponseFile: [{ required: true, message: computed(() => t('是否返回文件不能为空')), trigger: 'blur' }],
         networkAgreement:[{required: true, message: computed(() => t('网络协议不能为空')), trigger: 'blur'}],
         head:[{required: true, message: computed(() => t('接口负责人不能为空')), trigger: 'blur'}],
         headPhone:[{required: true, message: computed(() => t('负责人联系方式不能为空')), trigger: 'blur'}
@@ -811,6 +812,18 @@ let ruleFormConfig = ref({
             }
         },
         {
+            type: 'select',
+            label: computed(() => t('是否返回文件')),
+            prop: 'isResponseFile',
+            props: {
+                options: [
+                    //选项列表
+                    { label: computed(() => t('是')), value: true },
+                    { label: computed(() => t('否')), value: false }
+                ]
+            }
+        },
+        {
             type: 'slot',
             label: computed(() => t('是否限流')),
             prop: 'isLimit',
@@ -875,7 +888,7 @@ let ruleFormConfig = ref({
                                 }
                                 systemList.value.push(item)
                             }
-                            ruleFormConfig.value.itemList[10].props.options = systemList.value
+                            ruleFormConfig.value.itemList[11].props.options = systemList.value
                         })
                     }
                 }

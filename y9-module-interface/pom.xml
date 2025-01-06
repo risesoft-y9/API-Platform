@@ -1,0 +1,45 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.risesoft</groupId>
+        <artifactId>y9-digitalbase</artifactId>
+        <version>v9.6.8-SNAPSHOT</version>
+        <relativePath/>
+    </parent>
+
+    <artifactId>y9-module-interface</artifactId>
+    <packaging>pom</packaging>
+    <name>y9-module-interface</name>
+    <description>InterfacePlatform Engine y9-module-interface project parent pom.xml file</description>
+
+    <modules>
+        <module>risenet-y9boot-support-interface-jpa-repository</module>
+        <module>risenet-y9boot-webapp-interface-platform-execute</module>
+        <module>risenet-y9boot-webapp-interface-platform-manager</module>
+    </modules>
+
+    <profiles>
+        <profile>
+            <id>deploy-maven-central</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <configuration>
+                            <excludeArtifacts>
+                                <artifact>risenet-y9boot-webapp-interface-platform-execute</artifact>
+                                <artifact>risenet-y9boot-webapp-interface-platform-manager</artifact>
+                            </excludeArtifacts>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
