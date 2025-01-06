@@ -54,11 +54,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>net.risesoft</groupId>
-            <artifactId>risenet-y9boot-starter-listener-redis</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!-- 父级未引入Jar包 -->
         <dependency>
             <groupId>com.alibaba</groupId>
