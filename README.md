@@ -147,6 +147,18 @@ webapp -- 后端工程
 | 5      | 操作系统 | 统信、麒麟、中科方德等        |
 | 6      | 芯片   | ARM体系、MIPS体系、X86体系 |
 
+<a name="在线体验"></a>
+
+## 在线体验
+
+演示地址：<https://demo.youshengyun.com/interface/>
+
+> 演示账号：
+>
+> 系统管理员：systemManager 密码：Risesoft@2024
+> 
+> 普通用户：user 密码：Risesoft@2024
+
 
 ## 文档专区
 
