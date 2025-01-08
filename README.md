@@ -28,7 +28,7 @@
 vue -- 前端工程
  ├── y9vue-interfacePlatform -- 接口管理平台前端项目
 y9-module-interface -- 后端工程
- ├── risenet-y9boot-support-interface-jpa-repository -- 接口管理平台实体类项目
+ ├── risenet-y9boot-support-interface-jpa-repository  -- 接口管理平台实体类项目
  ├── risenet-y9boot-webapp-interface-platform-execute -- 接口管理平台执行端项目
  ├── risenet-y9boot-webapp-interface-platform-manager -- 接口管理平台管理端项目
 ```
