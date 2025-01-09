@@ -161,6 +161,17 @@ y9-module-interface -- 后端工程
 > 
 > 普通用户：user 密码：Risesoft@2024
 
+>使用说明：
+> 
+> 1.接入接口管理平台的接口调用方式，请参考：文档专区-接口管理平台调用文档
+> 
+> 2.体验环境，可以使用以下地址对已申请接口进行调用测试：
+>
+>https://demo-api.youshengyun.com//interfaceexecute/openInterface/forward
+>
+> 3.本地部署的接口管理平台调用地址请按照文档说明操作
+> 
+
 
 ## 文档专区
 
