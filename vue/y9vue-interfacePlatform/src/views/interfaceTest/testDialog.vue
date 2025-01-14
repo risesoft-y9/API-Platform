@@ -1,9 +1,9 @@
 <template>
     <!-- 注册接口信息 -->
     <div v-loading="loading" element-loading-text="加载中..."
-        style="height: calc(100% - 30px);padding: 15px;background-color: #ffffff">
-        <el-row :gutter="10" class="rowHeight">
-            <el-col :span="14" class="rowHeight">
+        style="height: calc(100%);">
+        <el-row :gutter="20" class="rowHeight">
+            <el-col :span="13" class="rowHeight">
                 <el-scrollbar>
                     <y9Form ref="ruleFormRef" :config="ruleFormConfig">
                         <template #interfaceType>
@@ -68,7 +68,7 @@
                     </y9Form>
                 </el-scrollbar>
             </el-col>
-            <el-col :span="10" class="rowHeight">
+            <el-col :span="11" class="rowHeight">
                 <div class="rtDataBackground">
                     <div class="rtDataTitleDiv" style="display: flex;align-items: center !important;vertical-align: middle;text-align:center;">
                         <el-row style="width: 100%;">
