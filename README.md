@@ -20,7 +20,7 @@
 
 ## 开源地址
 
-源码地址：<https://github.com/risesoft-y9/Interface-Platform>
+源码地址：<https://github.com/risesoft-y9/API-Platform>
 
 ## 源码目录
 
