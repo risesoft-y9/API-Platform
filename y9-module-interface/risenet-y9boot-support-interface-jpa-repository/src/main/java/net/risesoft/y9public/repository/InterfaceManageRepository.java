@@ -2,6 +2,7 @@ package net.risesoft.y9public.repository;
 
 
 import net.risesoft.y9public.dto.InterfaceManageDTO;
+import net.risesoft.y9public.entity.InstanceNum;
 import net.risesoft.y9public.entity.InterfaceManage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,9 @@ public interface InterfaceManageRepository extends JpaRepository<InterfaceManage
 
     @Query(value="select count(*) from Y9_INTERFACE_MANAGE_INFO",nativeQuery = true)
     long getAllCount();
+
+    @Query(value="select new net.risesoft.y9public.entity.InstanceNum(count(executeInstanceId),executeInstanceId) from InterfaceManage where interfaceStatus='发布' and isDelete='N' and executeInstanceId !='' group by executeInstanceId")
+    List<InstanceNum> getAllCountGroupByInstanceID();
 
     @Query(value="select id from InterfaceManage where interfaceStatus='发布' and isDelete='N' and executeInstanceId =?1")
     List<Long> getAllByExecuteInstanceId(String id);
