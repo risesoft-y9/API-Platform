@@ -123,36 +123,6 @@ export const delInterfaceById = async (params) => {
 
 
 /**
- * 发布接口信息
- * @param dataJson 
- * @returns 
- */
-export const pubInterface = async (data) => {
-    return await platformRequest({
-        url: "/api/rest/interface/pubInterface",
-        method: 'POST',
-        cType: false,
-        JSON:true,
-        data
-    });
-};
-
-/**
- * 停用接口信息
- * @param dataJson 
- * @returns 
- */
-export const stopInterface = async (data) => {
-    return await platformRequest({
-        url: "/api/rest/interface/stopInterface",
-        method: 'POST',
-        cType: false,
-        JSON:true,
-        data
-    });
-};
-
-/**
  * 根据接口ID清理权限信息数据
  * @param params 
  * @returns 
@@ -209,35 +179,7 @@ export const getAlreadyApplyInterfaceList = async (params) => {
     });
 };
 
-/**
- * 接口调用申请
- * @param data 
- * @returns 
- */
-export const useInterfaceApply = async (data) => {
-    return await platformRequest({
-        url: "/api/rest/interface/useInterfaceApply",
-        method: 'POST',
-        cType: false,
-        JSON:true,
-        data
-    });
-};
 
-/**
- * 变更接口调用申请
- * @param data 
- * @returns 
- */
-export const updateUseInterfaceApply = async (data) => {
-    return await platformRequest({
-        url: "/api/rest/interface/updateUseInterfaceApply",
-        method: 'POST',
-        cType: false,
-        JSON:true,
-        data
-    });
-};
 
 /**
  * 获取申请信息

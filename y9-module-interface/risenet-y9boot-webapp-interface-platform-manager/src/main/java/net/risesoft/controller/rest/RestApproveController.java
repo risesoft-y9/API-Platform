@@ -6,6 +6,7 @@ import net.risesoft.model.user.UserInfo;
 import net.risesoft.service.ApproveService;
 import net.risesoft.service.InterfaceApplyService;
 import net.risesoft.y9.Y9LoginUserHolder;
+import net.risesoft.y9public.dto.InterfaceApplyDTO;
 import net.risesoft.y9public.dto.ViewApproveDTO;
 import net.risesoft.y9public.entity.*;
 import net.risesoft.y9public.vo.ViewApproveVo;
@@ -29,10 +30,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/api/rest/approve")
 public class RestApproveController {
-
     @Autowired
     private ApproveService approveService;
-
     @Autowired
     private InterfaceApplyService interfaceApplyService;
 
@@ -130,6 +129,74 @@ public class RestApproveController {
             map.put("data", approve.get(0));
         } else {
             map.put("data", "");
+        }
+        map.put("code", "0");
+        return map;
+    }
+
+    //发布接口信息
+    @RequestMapping("/pubInterface")
+    @ResponseBody
+    @RiseLog(operationType = OperationTypeEnum.ADD, operationName = "已接入接口-发布接口")
+    public Map<String, Object> pubInterface(@RequestBody InterfaceApplyDTO interfaceApply) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> isOk = approveService.pubInterface(interfaceApply);
+        if ((boolean) isOk.get("status")) {
+            map.put("status", "success");
+        } else {
+            map.put("status", "error");
+            map.put("msg", isOk.get("msg").toString());
+        }
+        map.put("code", "0");
+        return map;
+    }
+
+    //停用接口
+    @RequestMapping("/stopInterface")
+    @ResponseBody
+    @RiseLog(operationType = OperationTypeEnum.ADD, operationName = "已接入接口-停用接口")
+    public Map<String, Object> stopInterface(@RequestBody InterfaceApplyDTO interfaceApply) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> isOk = approveService.stopInterface(interfaceApply);
+        if ((boolean) isOk.get("status")) {
+            map.put("status", "success");
+        } else {
+            map.put("status", "error");
+            map.put("msg", isOk.get("msg").toString());
+        }
+        map.put("code", "0");
+        return map;
+    }
+
+    //调用申请接口信息
+    @RequestMapping("/useInterfaceApply")
+    @ResponseBody
+    @RiseLog(operationType = OperationTypeEnum.MODIFY, operationName = "接口调用申请")
+    public Map<String, Object> useInterfaceApply(@RequestBody InterfaceApplyDTO interfaceApply) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> isOk = approveService.useInterfaceApply(interfaceApply, true);
+        if ((boolean) isOk.get("status")) {
+            map.put("status", "success");
+        } else {
+            map.put("status", "error");
+            map.put("msg", isOk.get("msg").toString());
+        }
+        map.put("code", "0");
+        return map;
+    }
+
+    //调用申请接口信息
+    @RequestMapping("/updateUseInterfaceApply")
+    @ResponseBody
+    @RiseLog(operationType = OperationTypeEnum.MODIFY, operationName = "变更接口调用申请")
+    public Map<String, Object> updateUseInterfaceApply(@RequestBody InterfaceApplyDTO interfaceApply) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> isOk = approveService.useInterfaceApply(interfaceApply, false);
+        if ((boolean) isOk.get("status")) {
+            map.put("status", "success");
+        } else {
+            map.put("status", "error");
+            map.put("msg", isOk.get("msg").toString());
         }
         map.put("code", "0");
         return map;

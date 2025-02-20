@@ -25,11 +25,6 @@ public interface InterfaceApplyService {
     //生成接口调用申请审批信息
     Map<String,Object> createData(InterfaceApply apply,String interfaceStatus);
 
-    //审批通过接口信息
-    Map<String,Object> agreeApproveInfo(Approve approve);
-
-    //审批拒绝接口信息
-    Map<String,Object> refuseApproveInfo(Approve approve);
 
     //根据id查询申请信息
     InterfaceApply getApplyInfoById(String id);

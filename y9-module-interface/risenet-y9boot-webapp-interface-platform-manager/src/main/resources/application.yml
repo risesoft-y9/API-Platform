@@ -1,6 +1,6 @@
 server:
   intranet:
-    ip: 192.168.x.x,10.161.x.x
+    ip: 192.168.x.x,10.161.x.x,10.192.x.x
   port: 7055
   error:
     include-message: always
@@ -15,7 +15,20 @@ server:
       tracking-modes: COOKIE
   tomcat:
     uri-encoding: UTF-8
+eureka:
+  server:
+    enable-self-preservation: false # 关闭自我保护功能，默认为true
+    eviction-interval-timer-in-ms: 600000
+    useReadOnlyResponseCache: false
+  dashboard:
+    enabled: false # 启用服务面板
+    path: / # 服务面板路径
+  client:
+    fetch-registry: false  # 是否从Eureka服务器获取注册信息
+    register-with-eureka: false  # 是否注册自身到Eureka服务器
 spring:
+  eureka:
+    token: "admin:123"
   application:
     name: interfaceManager
   aop:
@@ -56,7 +69,7 @@ spring:
         driver-class-name: com.mysql.cj.jdbc.Driver
         url: jdbc:mysql://localhost:3306/y9_interface?serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&useUnicode=true&characterEncoding=utf-8&rewriteBatchedStatements=true&useCompression=true&useSSL=false
         username: root
-        password: 'root'
+        password: root
         initialSize: 1
         maxActive: 20
         maxPoolPreparedStatementPerConnectionSize: 100
@@ -125,7 +138,7 @@ spring:
       maxFileSize: 200MB
       maxRequestSize: 1000MB
 y9:
-  interfacePath: /home
+  interfacePath: D:\\interfaceFile
   systemName: interfaceManager
   common:
     idEnabled: 0
@@ -149,32 +162,22 @@ y9:
         allowedOriginPatterns:
           - https://*.youshengyun.com
           - http://*.youshengyun.com
-          - http://localhost:7056
           - http://localhost:7055
+          - http://localhost:8080
           - http://localhost:7070
           - http://127.0.0.1:7055
-          - http://127.0.0.1:7056
       xss:
         ignoreParam:
           - ID
           - properties
-          - operationArray
-          - resourceInfoJson
-          - meta
-          - accessLogJson
-          - clickedAppJson
-          - departmentJson
-          - personJson
-          - groupJson
-          - positionJson
           - url
-          - xmlData
-          - parseData
-          - whereSql
       csrf:
         acceptedReferer:
           - 127.0.0.1
           - localhost
+          - vue.youshengyun.com
+          - test.youshengyun.com
+          - demo.youshengyun.com
     oauth2:
       resource:
         enabled: true

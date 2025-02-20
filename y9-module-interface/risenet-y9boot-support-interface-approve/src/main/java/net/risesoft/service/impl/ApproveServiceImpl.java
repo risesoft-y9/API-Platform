@@ -1,12 +1,16 @@
 package net.risesoft.service.impl;
 
-import net.risesoft.model.*;
+import net.risesoft.id.IdType;
+import net.risesoft.id.Y9IdGenerator;
+import net.risesoft.model.ApplyType;
+import net.risesoft.model.ApproveStatus;
+import net.risesoft.model.InterfaceStatus;
 import net.risesoft.model.user.UserInfo;
 import net.risesoft.service.ApproveService;
-import net.risesoft.service.InterfaceApplyService;
 import net.risesoft.util.RedissonUtil;
 import net.risesoft.y9.Y9LoginUserHolder;
 import net.risesoft.y9public.dto.ApproveDTO;
+import net.risesoft.y9public.dto.InterfaceApplyDTO;
 import net.risesoft.y9public.dto.InterfaceManageDTO;
 import net.risesoft.y9public.dto.ViewApproveDTO;
 import net.risesoft.y9public.entity.*;
@@ -40,7 +44,7 @@ public class ApproveServiceImpl implements ApproveService {
     @Autowired
     private ViewApproveRepository viewApproveRepository;
     @Autowired
-    private InterfaceApplyService interfaceApplyService;
+    private InterfaceApplyRepository interfaceApplyRepository;
 
     private static final ReentrantLock lock = new ReentrantLock();
 
@@ -226,9 +230,9 @@ public class ApproveServiceImpl implements ApproveService {
             }
 
             if (ApplyType.INVOKE.getEnName().equals(approve1.getApplyType())) {
-                InterfaceApply apply = interfaceApplyService.getApplyInfoById(approve1.getApplyId());
-                interfaceApplyService.createSecret(apply);
-                interfaceApplyService.saveInfo(apply);
+                InterfaceApply apply = interfaceApplyRepository.findById(approve1.getApplyId()).orElse(null);
+                createSecret(apply);
+                interfaceApplyRepository.save(apply);
             }
             approveRepository.save(approve1);
             map.put("status", "true");
@@ -314,5 +318,169 @@ public class ApproveServiceImpl implements ApproveService {
     @Override
     public Map<String, Object> buildApprove(Approve approve, String flowId) {
         return null;
+    }
+
+    @Override
+    public Map<String, Object> pubInterface(InterfaceApplyDTO apply) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", false);
+        if (StringUtils.isNotBlank(apply.getInterfaceId())) {
+            String id = apply.getInterfaceId();
+            InterfaceManage interfaceManage = interfaceManageRepository.findById(id).orElse(null);
+            //只有注册状态的接口可以提交发布审批,或者是没有正在审核的记录可以提交发布审批
+            List<Approve> approveList = new ArrayList<>();
+            if (InterfaceStatus.SUBMIT_APPROVE.getName().equals(interfaceManage.getInterfaceStatus()) || InterfaceStatus.UN_APPROVE.getName().equals(interfaceManage.getInterfaceStatus())) {
+                approveList = approveRepository.findByInterfaceIdAndIsOver(id, "N");
+            }
+            if ((InterfaceStatus.SUBMIT_APPROVE.getName().equals(interfaceManage.getInterfaceStatus()) && approveList.size() == 0)
+                    || (InterfaceStatus.UN_APPROVE.getName().equals(interfaceManage.getInterfaceStatus()) && approveList.size() == 0)) {
+                if (interfaceManage != null) {
+                    apply.setApplyType(ApplyType.PUB_INTERFACE.getEnName());
+                    interfaceManage.setInterfaceStatus(InterfaceStatus.SUBMIT_APPROVE.getName());
+                    Map<String, Object> applyMap = createData(new InterfaceApply(apply),InterfaceStatus.APPROVE.getName());
+                    if (applyMap.get("status") != null && (boolean) applyMap.get("status")) {
+                        InterfaceManage interfaceManage1 = interfaceManageRepository.save(interfaceManage);
+                        if (interfaceManage1 != null) {
+                            map.put("status", true);
+                        }
+                    } else {
+                        map.put("msg", applyMap.get("msg"));
+                    }
+                }
+            } else {
+                map.put("msg", "已经有正在审核的记录，请等待");
+            }
+        }
+        return map;
+    }
+
+    @Override
+    public Map<String, Object> stopInterface(InterfaceApplyDTO apply) {
+        Map<String, Object> map = new HashMap<>();
+        if (StringUtils.isNotBlank(apply.getInterfaceId())) {
+            InterfaceManage interfaceManage = interfaceManageRepository.findById(apply.getInterfaceId()).orElse(null);
+            //只有发布状态的接口可以提交停用审批,且是没有正在审核的记录
+            List<Approve> approveList = new ArrayList<>();
+            if (InterfaceStatus.APPROVE.getName().equals(interfaceManage.getInterfaceStatus())) {
+                approveList = approveRepository.findByInterfaceIdAndIsOver(apply.getInterfaceId(), "N");
+            }
+            if (InterfaceStatus.APPROVE.getName().equals(interfaceManage.getInterfaceStatus()) && approveList.size() == 0) {
+                if (interfaceManage != null) {
+                    apply.setApplyType(ApplyType.STOP_INTERFACE.getEnName());
+                    Map<String, Object> applyMap = createData(new InterfaceApply(apply), InterfaceStatus.UN_APPROVE.getName());
+                    if (applyMap.get("status") != null && (boolean) applyMap.get("status")) {
+                        map.put("status", true);
+                        return map;
+                    } else {
+                        map.put("msg", applyMap.get("msg"));
+                    }
+                }
+            } else {
+                map.put("msg", "停用失败，有正在审批的停用");
+            }
+        }
+        map.put("status", false);
+        return map;
+    }
+
+    @Override
+    public Map<String, Object> useInterfaceApply(InterfaceApplyDTO apply, Boolean flag) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", false);
+        if (StringUtils.isNotBlank(apply.getInterfaceId())) {
+            String id = apply.getInterfaceId();
+            InterfaceManage interfaceManage = interfaceManageRepository.findById(id).orElse(null);
+            //只有发布状态的接口可以提交调用申请，并且是没有正在审批记录
+            List<Approve> approveList = new ArrayList<>();
+            if (InterfaceStatus.APPROVE.getName().equals(interfaceManage.getInterfaceStatus())) {
+                if (StringUtils.isNotBlank(apply.getInterfaceId())) {
+                    List<String> ids = new ArrayList<>();
+                    if (StringUtils.isNotBlank(apply.getOldId())) {
+                        ids.add(apply.getOldId());
+                        approveList = approveRepository.findByApplyIdInAndApplyTypeAndIsOver(ids, ApplyType.INVOKE.getEnName(), "N");
+                    }
+
+                } else {
+                    map.put("msg", "接口id不存在！");
+                    return map;
+                }
+            } else {
+                map.put("msg", "接口不存在！");
+                return map;
+            }
+            if (approveList.size() == 0 || flag) {
+                if (interfaceManage != null) {
+                    apply.setApplyType(ApplyType.INVOKE.getEnName());
+                    Map<String, Object> applyMap = createData(new InterfaceApply(apply), "");
+                    if (StringUtils.isNotBlank(apply.getOldId())) {
+                        InterfaceApply info = interfaceApplyRepository.findById(apply.getOldId()).orElse(null);
+                        info.setIsEffective("N");
+                        interfaceApplyRepository.save(info);
+                    }
+                    if (applyMap.get("status") != null && (boolean) applyMap.get("status")) {
+                        map.put("status", true);
+                    } else {
+                        map.put("status", false);
+                        map.put("msg", applyMap.get("msg"));
+                    }
+                }
+            } else {
+                map.put("msg", "已经有正在审核的记录，请等待");
+            }
+        }
+        return map;
+    }
+    public void createSecret(InterfaceApply interfaceApply) {
+        Date date = new Date();
+        interfaceApply.setUserKey(Y9IdGenerator.genId(IdType.SNOWFLAKE));
+        interfaceApply.setUserSecret(Y9IdGenerator.genId(IdType.SNOWFLAKE));
+    }
+
+    public Map<String, Object> createData(InterfaceApply apply,String interfaceStatus) {
+        Map<String,Object> map = new HashMap<>();
+        UserInfo person = Y9LoginUserHolder.getUserInfo();
+        apply.setId(Y9IdGenerator.genId(IdType.SNOWFLAKE));
+        apply.setApplyPersonId(person.getPersonId());
+        apply.setApplyPersonName(person.getName());
+        if(StringUtils.isBlank(apply.getIsEffective())){
+            apply.setIsEffective("Y");
+        }
+        if (StringUtils.isBlank(apply.getApplyType())){
+            apply.setApplyType(ApplyType.INVOKE.getEnName());
+        }
+        InterfaceApply apply1 = interfaceApplyRepository.save(apply);
+
+        Approve approve = new Approve();
+        approve.setId(Y9IdGenerator.genId(IdType.SNOWFLAKE));
+        approve.setApproveStatus(ApproveStatus.SUBMIT_APPROVE.getName());
+        approve.setInterfaceId(apply1.getInterfaceId());
+        approve.setApplyId(apply1.getId());
+        approve.setIsOver("N");
+        approve.setIsNew("N");
+        approve.setApplyType(apply1.getApplyType());
+        approve.setInterfaceStatus(interfaceStatus);
+
+
+        //处理多个申请信息审批无法获取最新审批的问题
+        if (ApplyType.INVOKE.getEnName().equals(apply1.getApplyType())){
+            List<InterfaceApply> listApply = interfaceApplyRepository.findByInterfaceIdAndApplyPersonIdAndApplyType(apply1.getInterfaceId(),person.getPersonId(),ApplyType.INVOKE.getEnName());
+            List<String> ids = new ArrayList<>();
+            for(InterfaceApply apply2 : listApply){
+                ids.add(apply2.getId());
+            }
+            List<Approve> list = approveRepository.findByApplyIdInAndApplyTypeAndIsNew(ids,ApplyType.INVOKE.getEnName(),"N");
+            if (list!=null && list.size()!=0){
+                for (Approve approve1: list){
+                    approve1.setIsNew("Y");
+                }
+                approveRepository.saveAll(list);
+            }
+        }
+
+        Approve approve1 = approveRepository.save(approve);
+        if (approve1!=null){
+            map.put("status",true);
+        }
+        return map;
     }
 }

@@ -16,7 +16,18 @@ const logMonitoringRouter = {
     		name: "logMonitoring",
     		meta: {
 				title: "日志监控",
-				roles: ['systemAdmin'],
+				roles: ['V1'],
+				icon: "ri-eye-line",//remix 图标 优先级最高
+				// elIcon: "House"//element-plus 图标 优先级第二
+			},
+    	},
+		{
+    		path: "/logMonitoring",
+    		component: () => import("@/views/interface-v2/logMonitoringIndex.vue"),
+    		name: "logMonitoring",
+    		meta: {
+				title: "日志监控",
+				roles: ['V2'],
 				icon: "ri-eye-line",//remix 图标 优先级最高
 				// elIcon: "House"//element-plus 图标 优先级第二
 			},

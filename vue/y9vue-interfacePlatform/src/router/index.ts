@@ -12,14 +12,16 @@ import NProgress from "nprogress";
 import { createRouter, createWebHistory } from "vue-router";
 import homeRouter from "./modules/homeRouter";
 import interfaceRouter from "./modules/interfaceRouter"
-import personalInterfaceRouter from "./modules/mangeInterfaceRouter";
-import authInfoRouter from "./modules/authInfoRouter";
+import mangeInterfaceRouter from "./modules/mangeInterfaceRouter";
+import personalInterfaceRouter from "./modules/personalInterfaceRouter";
 import approveRouter from "./modules/approveRouter";
 import interfaceRegisterRouter from "./modules/interfaceRegister";
 import systemidentifierRouter from "./modules/systemidentifierRouter";
+import flowRouter from "./modules/flowInfoRouter";
 import blacklistingRouter from "./modules/blacklistingRouter";
 import testInterfaceRouter from "./modules/testInterfaceRouter";
 import logMonitoringRouter from "./modules/logMonitoringRouter";
+import executeRouter from "./modules/executeRouter";
 //constantRoutes为不需要动态判断权限的路由，如登录、404、500等
 export const constantRoutes: Array<any> = [
 	{
@@ -37,6 +39,14 @@ export const constantRoutes: Array<any> = [
 		component: () => import("@/views/401/index.vue")
 	},
 	{
+		path: "/interfaceTest",
+		hidden: true,
+		meta: {
+			title: "接口测试"
+		},
+		component: () => import("@/views/interfaceTest/testWindow.vue")
+	},
+	{
 		path: "/404",
 		hidden: true,
 		meta: {
@@ -48,7 +58,8 @@ export const constantRoutes: Array<any> = [
 
 //asyncRoutes需求动态判断权限并动态添加的页面  这里的路由模块顺序也是菜单显示的顺序（位置：src->router->modules）
 export const asyncRoutes = [
-	homeRouter,interfaceRegisterRouter,interfaceRouter,approveRouter,testInterfaceRouter,logMonitoringRouter,personalInterfaceRouter,systemidentifierRouter,blacklistingRouter
+	homeRouter,interfaceRegisterRouter,interfaceRouter,approveRouter,testInterfaceRouter,logMonitoringRouter,mangeInterfaceRouter,
+	personalInterfaceRouter,systemidentifierRouter,blacklistingRouter,flowRouter,executeRouter
 ];
 // 引入其他模块路由
 

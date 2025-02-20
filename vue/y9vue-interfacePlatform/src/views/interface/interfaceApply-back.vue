@@ -19,7 +19,7 @@ import { computed, h, ref, inject } from 'vue';
 import { useSettingStore } from '@/store/modules/settingStore';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useI18n } from 'vue-i18n';
-import {useInterfaceApply} from '@/api/interface/interface'
+import {useInterfaceApply} from '@/api/approve/approve';
 import authDialog from './authDialog.vue';
 
 // 注入 字体对象

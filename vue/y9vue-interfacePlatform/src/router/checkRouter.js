@@ -92,7 +92,7 @@ async function check() {
 	} else if (y9UserInfo.managerLevel === 3) {
 		userRole = ['auditAdmin'];
 	}
-
+	userRole.push(import.meta.env.VUE_APP_CONTEXT_VERSION)
 	isRoleValid = (await checkRole(userRole)) ? true : false;
 	// 根据角色权限获取路由
 	// let isLoadRouter = sessionStorage.getItem('isLoadRouter');

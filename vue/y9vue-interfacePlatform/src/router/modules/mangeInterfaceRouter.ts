@@ -4,6 +4,7 @@ const interfaceRouter = {
 	name:"mangeInterfaceIndex",
 	redirect: "/mangeInterface",
     meta: {
+		roles: ['V1'],
     	title: "管理中心",
     	icon: "ri-user-line",//remix 图标 优先级最高
 		// elIcon: "House"//element-plus 图标 优先级第二

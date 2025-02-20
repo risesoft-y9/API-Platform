@@ -16,7 +16,7 @@ import { computed, h, ref, inject } from 'vue';
 import { useSettingStore } from '@/store/modules/settingStore';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useI18n } from 'vue-i18n';
-import { pubInterface, stopInterface } from '@/api/interface/interface'
+import { pubInterface, stopInterface } from '@/api/approve/approve';
 
 
 // 注入 字体对象

@@ -118,7 +118,7 @@
     </el-dialog>
 </template>
 <script lang="ts" setup>
-import { computed, h, ref, inject } from 'vue';
+import { computed, h, ref, inject,onMounted, onBeforeUnmount} from 'vue';
 import { useSettingStore } from '@/store/modules/settingStore';
 import { useI18n } from 'vue-i18n';
 import { $validCheck } from '@/utils/validate'
@@ -133,11 +133,14 @@ import 'vue-json-pretty/lib/styles.css'
 import y9_storage from '@/utils/storage';
 import settings from '@/settings';
 
+const screenHeight = ref(window.innerHeight - 58)
+console.log('高度',screenHeight.value)
 // 注入 字体对象
 const fontSizeObj: any = inject('sizeObjInfo');
 const loading = ref(false)
 const settingStore = useSettingStore();
 const route = useRoute();
+const rowId = route.query.id
 const { t } = useI18n();
 const query: any = ref({});
 const filterRef = ref();
@@ -193,6 +196,10 @@ const props = defineProps({
     isShow: {
         type: Boolean,
         default: () => true
+    },
+    isWindow:{
+        type: String,
+        default: ()=> "rowHeight"
     }
 })
 //校验数字格式
@@ -300,7 +307,7 @@ const requestHeaderParameterTable = ref({
         parameterType: [{ required: true, message: computed(() => t('参数类型不能为空')), trigger: 'blur' }],
         val: [{ required: true, message: computed(() => t('参数值不能为空')), trigger: 'blur' }],
     },
-    height: 200,
+    height: props.isWindow=='true'?(screenHeight.value-59*5-1.3 -29*2)/2:200,
     keepSource: true,
     columns: [
         {
@@ -369,7 +376,7 @@ const requestParameterTable = ref({
         enable: true,
         mode: "cell"
     },
-    height: 200,
+    height: props.isWindow=='true'?(screenHeight.value-59*5-1.3 -29*2)/2:200,
     editRules: {
         //	表单验证规则。类型：FormRules
         parameterKey: [{ required: true, message: computed(() => t('参数key不能为空')), trigger: 'blur' }],
@@ -444,7 +451,7 @@ const responseParameterTable = ref({
         mode: "cell",
         autoClear: false
     },
-    height: 200,
+    height: screenHeight.value<900?213:screenHeight.value>1000?285:229,
     keepSource: true,
     editRules: {
         //	表单验证规则。类型：FormRules
@@ -904,120 +911,44 @@ function confirDialog(type) {
 //新增按钮
 async function addDialog() {
     ruleFormConfig.value.model = {}
-    ruleFormConfig.value.model.networkAgreement = "http"
-    ruleFormConfig.value.model.interfaceUrl = "127.0.0.1:7055/interfaceExecute/openInterface/forward"
-    ruleFormConfig.value.model.interfaceType = "Rest"
-    ruleFormConfig.value.model.interfaceMethod = "post"
-    ruleFormConfig.value.model.isResponseFile = true
-    initFormData()
-    let res = await getInterfaceId()
-    ruleFormConfig.value.model.id = res.data
-    discardInterfaceId.value = res.data
-    interfaceId.value = res.data
-    // for (let it of ruleFormConfig.value.itemList) {
-    //     if (it.props == undefined) {
-    //         it.props = {
-    //             disabled: false
-    //         }
-    //     } else {
-    //         it.props.disabled = false
-    //     }
-    // }
-    analysisYableData('[]', false)
-    analysisTreeData(res)
+    if(props.isWindow == 'true'){
+        let para = {
+            id: rowId
+        }
+        let res = await getInterfaceInfoById(para)
+        ruleFormConfig.value.model.networkAgreement = res.data.networkAgreement
+        ruleFormConfig.value.model.interfaceUrl = res.data.interfaceUrl
+        ruleFormConfig.value.model.interfaceType = res.data.interfaceType
+        ruleFormConfig.value.model.interfaceMethod = res.data.interfaceMethod
+        ruleFormConfig.value.model.isResponseFile = res.data.isResponseFile
+        interfaceType.value = res.data.interfaceType
+        let data1 = JSON.parse(res.data.parameters)
+        if(res.data.interfaceMethod != "get" && res.data.interfaceType != "webService"){
+            let data2 = JSON.parse(res.data.reqParameters)
+            for (let it of data2) {
+                data1.push(it)
+            }
+        }
+        if(res.data.interfaceType == "webService"){
+            webServiceForm.value.webSpecification = res.data.webSpecification
+            webServiceForm.value.nameSpace = res.data.nameSpace
+            webServiceForm.value.method = res.data.method
+        }
+        analysisYableData(data1, false)
+    }else{
+        ruleFormConfig.value.model.networkAgreement = "http"
+        ruleFormConfig.value.model.interfaceUrl = "127.0.0.1:7055/interfaceExecute/openInterface/forward"
+        ruleFormConfig.value.model.interfaceType = "Rest"
+        ruleFormConfig.value.model.interfaceMethod = "post"
+        ruleFormConfig.value.model.isResponseFile = true
+        analysisYableData([], false)
+    }
 }
 addDialog()
-//编辑按钮
-async function edit(id) {
-    initFormData()
-    let para = {
-        id: id
-    }
-    let res = await getInterfaceInfoById(para)
-    ruleFormConfig.value.model = res.data
-    for (let it of ruleFormConfig.value.itemList) {
-        if (it.props == undefined) {
-            it.props = {
-                disabled: false
-            }
-        } else {
-            it.props.disabled = false
-        }
-    }
-    initData(res.data)
-    analysisYableData(res.data.parameters, false)
-    analysisTreeData(res)
-    addDialogConfig.value.title = computed(() => t('编辑接口信息'))
-    addDialogConfig.value.okText = "保存"
-    addDialogConfig.value.show = true
-}
-//版本升级按钮
-async function updateVersion(id) {
-    initFormData()
-    let para = {
-        id: id
-    }
-    let res = await getInterfaceInfoById(para)
-    ruleFormConfig.value.model = res.data
-    for (let it of ruleFormConfig.value.itemList) {
-        if (it.props == undefined) {
-            it.props = {
-                disabled: false
-            }
-        } else {
-            it.props.disabled = false
-        }
-    }
-    initData(res.data)
-    analysisYableData(res.data.parameters, false)
-    analysisTreeData(res)
-    let response = await getInterfaceId(para)
-    ruleFormConfig.value.model.id = response.data
-    discardInterfaceId.value = response.data
-    interfaceId.value = response.data
-    saveType.value = "1"
-    let isOverwriteItem = {
-        type: 'slot',
-        label: computed(() => t('覆盖更新')),
-        prop: 'isOverwrite',
-        props: {
-            slotName: "isOverwrite"
-        }
-    }
-    ruleFormConfig.value.itemList.push(isOverwriteItem)
-    addDialogConfig.value.title = computed(() => t('接口版本升级维护信息'))
-    addDialogConfig.value.okText = "保存"
-    addDialogConfig.value.show = true
-}
-//详情按钮
-async function view(id, show) {
-    initFormData()
-    let para = {
-        id: id
-    }
-    let res = await getInterfaceInfoById(para)
-    ruleFormConfig.value.model = res.data
-    for (let it of ruleFormConfig.value.itemList) {
-        if (it.props == undefined) {
-            it.props = {
-                disabled: true
-            }
-        } else {
-            it.props.disabled = true
-        }
-    }
-    initData(res.data)
-    analysisYableData(res.data.parameters, true)
-    analysisTreeData(res)
-    addDialogConfig.value.okText = false
-    addDialogConfig.value.title = computed(() => t('查看接口信息'))
-    addDialogConfig.value.show = true
-    props.isShow = show
-}
 
 //解析请求参数json数据并赋值
 function analysisYableData(jsonData, isDisabled) {
-    let reloadData = JSON.parse(jsonData)
+    let reloadData = jsonData
     let jzData1 = []
     let jzData2 = []
     let jzData3 = []
@@ -1093,38 +1024,7 @@ function initData(data, isDisabled) {
     interfaceId.value = data.id
 }
 
-//新增时初始化赋值
-function initFormData() {
-    interfaceType.value = "Rest"
-    limitInfoForm.value = {
-        thresholdType: "0",
-        limitTime: "",
-        limitCount: "",
-        thresholdVal: "",
-        effect: "1",
-        waitTime: ""
-    }
-    oldLimitInfoForm.value = {
-        thresholdType: "0",
-        limitTime: "",
-        limitCount: "",
-        thresholdVal: "",
-        effect: "1",
-        waitTime: ""
-    }
-    selectData.value = ""
-    isDelData.value = true
-    //保存类型，0普通保存，1版本迭代保存
-    saveType.value = "0"
-    //去除表单的是否覆盖更新
-    let newData = []
-    for (let it of ruleFormConfig.value.itemList) {
-        if (it.prop != "isOverwrite") {
-            newData.push(it)
-        }
-    }
-    ruleFormConfig.value.itemList = newData
-}
+
 //弹出提示信息
 function openPromptDialog(title, msg) {
     ElMessageBox.alert(msg, title, {
@@ -1286,7 +1186,16 @@ getListByType(selectParameter).then((res) => {
         deptList.value.push(item)
     }
 })
-defineExpose({ addDialog, edit, view, updateVersion })
+const handleResize = ()=>{
+    window.location.reload()
+}
+onMounted(()=>{
+    window.addEventListener('resize', handleResize);
+})
+onBeforeUnmount(()=>{
+    window.removeEventListener('resize', handleResize);
+})
+defineExpose({ addDialog })
 </script>
 <style>
 .leftMargin {

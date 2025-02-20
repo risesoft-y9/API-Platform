@@ -12,7 +12,8 @@ import { computed, ref, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import applyInfo from './applyInfo.vue';
-import { useInterfaceApply, getApplyInfoByInterfaceId } from '@/api/interface/interface'
+import { getApplyInfoByInterfaceId } from '@/api/interface/interface'
+import {useInterfaceApply} from '@/api/approve/approve'
 import { getSelectUserFlowNode } from '@/api/flownode/flownode'
 
 // 注入 字体对象

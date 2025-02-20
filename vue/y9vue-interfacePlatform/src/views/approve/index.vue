@@ -58,6 +58,7 @@ const flowType = ref(false)
 const flowInterfaceId = ref()
 const approveRef = ref()
 const selectedDate = ref()
+const version = import.meta.env.VUE_APP_CONTEXT_VERSION
 const props = defineProps({
     status:{
         type:String,
@@ -146,6 +147,9 @@ function rtBtns(row){
     if(row.isNow=="Y"){
         btns.push(viewBtn)
         btns.push(editBtn)
+        if(version=='V2'){
+            btns.push(flowBtn)
+        }
     }else{
         btns.push(viewBtn)
         btns.push(flowInfoBtn)

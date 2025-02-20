@@ -42,6 +42,8 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -848,7 +850,7 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
         Map<String, Object> map = new HashMap<>();
         if (StringUtils.isBlank(interfaceId)) {
             map.put("status", false);
-            map.put("msg", "为传入接口id");
+            map.put("msg", "未传入接口id");
             return map;
         }
         InterfaceManage manage = interfaceManageRepository.findById(interfaceId).orElse(null);
@@ -867,8 +869,10 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
                 return map;
             }
         }
-        String fileId = Y9IdGenerator.genId(IdType.SNOWFLAKE);
-        File interfacefile = new File(path + File.separator + fileId + "_" + file.getOriginalFilename());
+        /*处理文件名称中可能存在的空格*/
+        String dealFileName = file.getOriginalFilename().replaceAll("\\s+", "");
+        String fileId = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));//Y9IdGenerator.genId(IdType.SNOWFLAKE);
+        File interfacefile = new File(path + File.separator + fileId + "_" + dealFileName);
         try {
             file.transferTo(interfacefile);
         } catch (IOException e) {
@@ -878,8 +882,8 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
             return map;
         }
         manage.setInterfaceFileUrl("api/rest/interface/downLoadInterfaceFile?sameId=" + manage.getSameInterfaceId()
-                + "&version=" + manage.getVersion() + "&fileName=" + fileId + "_" + file.getOriginalFilename());
-        manage.setInterfaceFileName(file.getOriginalFilename());
+                + "&version=" + manage.getVersion() + "&fileName=" + fileId + "_" + dealFileName);
+        manage.setInterfaceFileName(dealFileName);
         interfaceManageRepository.save(manage);
         map.put("status", true);
         return map;

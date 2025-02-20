@@ -5,7 +5,7 @@ const approveRouter = {
 	redirect: "/approve",
     meta: {
     	title: "接口审批",
-		roles: ['systemAdmin'],
+		roles: ['systemAdmin','V2'],
     	icon: "ri-shield-check-line",//remix 图标 优先级最高
 		// elIcon: "House"//element-plus 图标 优先级第二
     },
@@ -17,12 +17,23 @@ const approveRouter = {
     		name: "approve",
     		meta: { 
 				title: "接口审批",
-				roles: ['systemAdmin'],
+				roles: ['V1'],
 				icon: "ri-shield-check-line",//remix 图标 优先级最高
 				// elIcon: "House"//element-plus 图标 优先级第二
 			},
     	},
-
+		{
+    		path: "/approve",
+    		component: () => import("@/views/approve-v2/index.vue"),
+			props:{status:"发布"},
+    		name: "approve",
+    		meta: { 
+				title: "接口审批",
+				roles: ['V2'],
+				icon: "ri-shield-check-line",//remix 图标 优先级最高
+				// elIcon: "House"//element-plus 图标 优先级第二
+			},
+    	}
     ]
 };
 

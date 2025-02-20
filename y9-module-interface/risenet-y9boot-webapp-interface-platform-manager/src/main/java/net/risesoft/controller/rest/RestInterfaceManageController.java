@@ -23,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -167,40 +169,6 @@ public class RestInterfaceManageController {
     }
 
 
-    //发布接口信息
-    @RequestMapping("/pubInterface")
-    @ResponseBody
-    @RiseLog(operationType = OperationTypeEnum.ADD, operationName = "已接入接口-发布接口")
-    public Map<String, Object> pubInterface(@RequestBody InterfaceApplyDTO interfaceApply) {
-        Map<String, Object> map = new HashMap<>();
-        Map<String, Object> isOk = interfaceManageService.pubInterface(interfaceApply);
-        if ((boolean) isOk.get("status")) {
-            map.put("status", "success");
-        } else {
-            map.put("status", "error");
-            map.put("msg", isOk.get("msg").toString());
-        }
-        map.put("code", "0");
-        return map;
-    }
-
-    //停用接口
-    @RequestMapping("/stopInterface")
-    @ResponseBody
-    @RiseLog(operationType = OperationTypeEnum.ADD, operationName = "已接入接口-停用接口")
-    public Map<String, Object> stopInterface(@RequestBody InterfaceApplyDTO interfaceApply) {
-        Map<String, Object> map = new HashMap<>();
-        Map<String, Object> isOk = interfaceManageService.stopInterface(interfaceApply);
-        if ((boolean) isOk.get("status")) {
-            map.put("status", "success");
-        } else {
-            map.put("status", "error");
-            map.put("msg", isOk.get("msg").toString());
-        }
-        map.put("code", "0");
-        return map;
-    }
-
     //获取可申请接口列表信息
     @RequestMapping("/getMayApplyInterfaceList")
     @ResponseBody
@@ -259,39 +227,6 @@ public class RestInterfaceManageController {
         return map;
     }
 
-    //调用申请接口信息
-    @RequestMapping("/useInterfaceApply")
-    @ResponseBody
-    @RiseLog(operationType = OperationTypeEnum.MODIFY, operationName = "接口调用申请")
-    public Map<String, Object> useInterfaceApply(@RequestBody InterfaceApplyDTO interfaceApply) {
-        Map<String, Object> map = new HashMap<>();
-        Map<String, Object> isOk = interfaceManageService.useInterfaceApply(interfaceApply, true);
-        if ((boolean) isOk.get("status")) {
-            map.put("status", "success");
-        } else {
-            map.put("status", "error");
-            map.put("msg", isOk.get("msg").toString());
-        }
-        map.put("code", "0");
-        return map;
-    }
-
-    //调用申请接口信息
-    @RequestMapping("/updateUseInterfaceApply")
-    @ResponseBody
-    @RiseLog(operationType = OperationTypeEnum.MODIFY, operationName = "变更接口调用申请")
-    public Map<String, Object> updateUseInterfaceApply(@RequestBody InterfaceApplyDTO interfaceApply) {
-        Map<String, Object> map = new HashMap<>();
-        Map<String, Object> isOk = interfaceManageService.useInterfaceApply(interfaceApply, false);
-        if ((boolean) isOk.get("status")) {
-            map.put("status", "success");
-        } else {
-            map.put("status", "error");
-            map.put("msg", isOk.get("msg").toString());
-        }
-        map.put("code", "0");
-        return map;
-    }
 
     //获取接口调用申请信息
     @RequestMapping("/getApplyInfoByInterfaceId")
@@ -332,4 +267,9 @@ public class RestInterfaceManageController {
     public void downLoadInterfaceFile(String sameId, String version, String fileName, HttpServletResponse response) {
         interfaceManageService.downLoadInterfaceFile(sameId, version, fileName, response);
     }
+
+
 }
+
+
+

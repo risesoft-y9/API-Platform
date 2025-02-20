@@ -269,8 +269,12 @@ public class UseInterfaceServiceImpl implements UseInterfaceService {
                     }
                     logMap.put("forwardResponseCode", "" + response.getStatusCodeValue());
                     logMap.put("forwardResponseData", response.getBody());
-                    Map<String, Object> dataMap = JSONArray.parseObject(response.getBody(), Map.class);
-                    map.putAll(dataMap);
+                    try {
+                        Map<String, Object> dataMap = JSONArray.parseObject(response.getBody(), Map.class);
+                        map.putAll(dataMap);
+                    }catch (Exception e){
+                        map.put("responseData",response.getBody());
+                    }
                     return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE,"application/json").body(map);
                 }
             }

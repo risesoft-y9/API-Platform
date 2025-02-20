@@ -6,14 +6,12 @@ import net.risesoft.model.ApplyType;
 import net.risesoft.model.ApproveStatus;
 import net.risesoft.model.user.UserInfo;
 import net.risesoft.service.InterfaceApplyService;
-import net.risesoft.util.RedissonUtil;
 import net.risesoft.y9.Y9LoginUserHolder;
 import net.risesoft.y9public.dto.ApproveDTO;
 import net.risesoft.y9public.dto.InterfaceManageDTO;
 import net.risesoft.y9public.entity.*;
 import net.risesoft.y9public.repository.ApproveRepository;
 import net.risesoft.y9public.repository.InterfaceApplyRepository;
-import net.risesoft.y9public.repository.InterfaceLimitInfoRepository;
 import net.risesoft.y9public.repository.InterfaceManageRepository;
 import net.risesoft.y9public.vo.ApplyVo;
 import org.apache.commons.lang3.StringUtils;
@@ -34,10 +32,6 @@ public class InterfaceApplyServiceImpl implements InterfaceApplyService {
     private InterfaceManageRepository interfaceManageRepository;
     @Autowired
     private ApproveRepository approveRepository;
-    @Autowired
-    private InterfaceLimitInfoRepository interfaceLimitInfoRepository;
-    @Autowired
-    private RedissonUtil redissonUtil;
     @Autowired
     private InterfaceApplyRepository interfaceApplyRepository;
 
@@ -141,59 +135,6 @@ public class InterfaceApplyServiceImpl implements InterfaceApplyService {
         return map;
     }
 
-    @Override
-    public Map<String, Object> agreeApproveInfo(Approve approve) {
-        Map<String,Object> map = new HashMap<>();
-        UserInfo person = Y9LoginUserHolder.getUserInfo();
-        if (StringUtils.isNotBlank(approve.getId())){
-            Approve approve1 = approveRepository.findById(approve.getId()).orElse(null);
-            if (ApproveStatus.SUBMIT_APPROVE.getName().equals(approve1.getApproveStatus())){
-                approve1.setIsOver("Y");
-                approve1.setApproveStatus(ApproveStatus.APPROVE.getName());
-                approve1.setPersonId(person.getPersonId());
-                approve1.setPersonName(person.getName());
-                approve1.setNotes(approve.getNotes());
-                approve1.setIllustrate(approve.getIllustrate());
-                InterfaceManage interfaceManage = interfaceManageRepository.findById(approve1.getInterfaceId()).orElse(null);
-                interfaceManage.setInterfaceStatus(approve1.getInterfaceStatus());
-                interfaceManageRepository.save(interfaceManage);
-                approveRepository.save(approve1);
-                //初始化限流器
-                if ("是".equals(interfaceManage.getIsLimit())){
-                    InterfaceLimitInfo interfaceLimitInfo = interfaceLimitInfoRepository.findAllByInterfaceId(interfaceManage.getId());
-                    redissonUtil.init(interfaceLimitInfo,person.getPersonId());
-                }
-                map.put("status","true");
-            }else {
-                map.put("status","false");
-                map.put("msg","审批状态不正确，审批已经结束");
-            }
-        }
-        return map;
-    }
-
-    @Override
-    public Map<String, Object> refuseApproveInfo(Approve approve) {
-        Map<String,Object> map = new HashMap<>();
-        UserInfo person = Y9LoginUserHolder.getUserInfo();
-        if (StringUtils.isNotBlank(approve.getId())){
-            Approve approve1 = approveRepository.findById(approve.getId()).orElse(null);
-            if (ApproveStatus.SUBMIT_APPROVE.getName().equals(approve1.getApproveStatus())){
-                approve1.setIsOver("Y");
-                approve1.setApproveStatus(ApproveStatus.UN_APPROVE.getName());
-                approve1.setPersonId(person.getPersonId());
-                approve1.setPersonName(person.getName());
-                approve1.setNotes(approve.getNotes());
-                approve1.setIllustrate(approve.getIllustrate());
-                approveRepository.save(approve1);
-                map.put("status","true");
-            }else {
-                map.put("status","false");
-                map.put("msg","审批状态不正确，审批已经结束");
-            }
-        }
-        return map;
-    }
 
     @Override
     public InterfaceApply getApplyInfoById(String id) {

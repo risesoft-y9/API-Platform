@@ -92,6 +92,7 @@ import settings from '@/settings';
 import '@/assets/css/tablestatusfontcolor.css';
 
 
+const appIndex = import.meta.env.VUE_APP_HOST_INDEX;
 // 注入 字体对象
 const fontSizeObj: any = inject('sizeObjInfo');
 const settingStore = useSettingStore();
@@ -250,7 +251,7 @@ let interfaceFileitem = {
 }
 let operateItem = {
     title: computed(() => t('操作')),
-    width: (props.status == '发布') ? 120 : (props.status == '申请') ? 120 : 240,
+    width: (props.status == '发布') ? 120 : (props.status == '申请') ? 120 : 265,
     fixed: 'right',
     render: (row) => {
         let btns = []
@@ -294,6 +295,7 @@ function rtBtns(row) {
     let applyRecordBtn = h('span', { class: 'leftMargin operate', onClick: () => { applyRecord(row.id, row.isLimitData, row.interfaceName) } }, t("申请详情"));
     let interfaceViewBtn = h('span', { class: 'leftMargin operate', onClick: () => { interfaceView(row.id) } }, t("接口详情"));
     let applyInfoBtn = h('span', { class: 'leftMargin operate', onClick: () => { authApply(row.id, "申请", row.interfaceName, row.isLimitData) } }, t("申请详情"));
+    let testBtn = h('span', { class: 'leftMargin operate', onClick: () => { openTest(row.id) } }, t("测试"));
     if (props.status == '发布') {
         btns.push(applyBtn)
     } else if (props.status == '申请') {
@@ -303,25 +305,31 @@ function rtBtns(row) {
         btns.push(editBtn)
         btns.push(delBtn)
         btns.push(pubBtn)
+        btns.push(testBtn)
     } else if (row.interfaceStatus == "待发布" && row.approveStatus == "未审批") {
         btns.push(viewBtn)
+        btns.push(testBtn)
     } else if (row.interfaceStatus == "发布" && row.approveStatus == "未审批") {
         btns.push(viewBtn)
+        btns.push(testBtn)
     } else if (row.interfaceStatus == "发布") {
         btns.push(viewBtn)
         btns.push(flowInfoBtn)
         btns.push(upBtn)
         btns.push(stopBtn)
+        btns.push(testBtn)
     } else if (row.interfaceStatus == "待发布" && row.approveStatus.indexOf("不通过") != -1) {
         btns.push(viewBtn)
         btns.push(flowInfoBtn)
         btns.push(pubBtn)
         btns.push(editBtn)
+        btns.push(testBtn)
     } else if (row.interfaceStatus == "停用") {
         btns.push(viewBtn)
         btns.push(flowInfoBtn)
         btns.push(pubBtn)
         btns.push(editBtn)
+        btns.push(testBtn)
     } else {
         btns.push(viewBtn)
     }
@@ -770,6 +778,10 @@ const viewInterfaceFile = (url, interfaceId) => {
 //关闭预览页面
 const closePreviewDialog = () => {
     previewOpen.value = false
+}
+//打开测试页面
+const openTest =(id)=>{
+    window.open(appIndex+"interfaceTest?id="+id,"_blank")
 }
 </script>
 <style>

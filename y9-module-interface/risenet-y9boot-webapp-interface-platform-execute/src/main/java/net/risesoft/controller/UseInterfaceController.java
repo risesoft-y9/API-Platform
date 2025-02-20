@@ -52,5 +52,13 @@ public class UseInterfaceController {
     }
 
 
+    public static void main(String[] args) {
+        File file = new File(" D:\\interfaceFile\\1761068070845026304\\V2.1\\1761071017150648320_H3C服务器系统下通过StorCLI工具收集LSI-9440 9460 9361 L460 9560阵列卡日志 (8).pdf");
+        System.out.println(file.getName());
+
+    }
+
+
+
 
 }

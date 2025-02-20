@@ -18,7 +18,7 @@ import { computed, h, ref, inject } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import { $validCheck } from '@/utils/validate'
-import { useInterfaceApply } from '@/api/interface/interface'
+import { useInterfaceApply } from '@/api/approve/approve'
 import {getListByType,getListByPid} from '@/api/systemidentifier/systemidentifier'
 import authDialog from './authDialog.vue';
 

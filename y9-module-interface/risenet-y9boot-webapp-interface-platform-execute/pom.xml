@@ -139,7 +139,7 @@
         <dependency>
             <groupId>net.risesoft</groupId>
             <artifactId>risenet-y9boot-starter-idGenerator</artifactId>
-            <version>${project.version}</version>
+            <version>v9.6.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -158,10 +158,16 @@
             <version>2.2.1.1</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <!--        通用产品版本只使用一个mysql数据库-->
+        <dependency>
             <groupId>net.risesoft</groupId>
             <artifactId>risenet-y9boot-support-interface-jpa-repository</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
 
     <distributionManagement>

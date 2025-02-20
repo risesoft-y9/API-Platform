@@ -34,7 +34,7 @@ import { useSettingStore } from '@/store/modules/settingStore';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import { $validCheck } from '@/utils/validate'
-import {useInterfaceApply} from '@/api/interface/interface'
+import {useInterfaceApply} from '@/api/approve/approve';
 import authDialog from '@/views/approve/authDialog.vue';
 import {getApplyInfoById} from '@/api/apply/apply';
 import {getListByType,getListByPid} from '@/api/systemidentifier/systemidentifier'

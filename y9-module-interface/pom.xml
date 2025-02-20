@@ -17,6 +17,7 @@
     <description>InterfacePlatform Engine y9-module-interface project parent pom.xml file</description>
 
     <modules>
+        <module>risenet-y9boot-support-interface-approve</module>
         <module>risenet-y9boot-support-interface-jpa-repository</module>
         <module>risenet-y9boot-webapp-interface-platform-execute</module>
         <module>risenet-y9boot-webapp-interface-platform-manager</module>

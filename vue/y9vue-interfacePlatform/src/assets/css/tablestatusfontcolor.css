@@ -1,9 +1,9 @@
 .successText{
-    color: #67c23a;
+    color: #67c23a!important;
 }
 .stopText{
-    color: red;
+    color: red!important;
 }
 .otherText{
-    color: #e27005e1;
+    color: #e27005e1!important;
 }

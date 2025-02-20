@@ -17,7 +17,7 @@ import { computed, ref, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import applyInfo from './applyInfo.vue';
-import {updateUseInterfaceApply } from '@/api/interface/interface'
+import {updateUseInterfaceApply } from '@/api/approve/approve'
 import { getApplyInfoById } from '@/api/apply/apply'
 import { ElLoading } from 'element-plus'
 

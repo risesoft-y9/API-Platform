@@ -1,6 +1,7 @@
 package net.risesoft.service;
 
 import net.risesoft.y9public.dto.ApproveDTO;
+import net.risesoft.y9public.dto.InterfaceApplyDTO;
 import net.risesoft.y9public.dto.InterfaceManageDTO;
 import net.risesoft.y9public.dto.ViewApproveDTO;
 import net.risesoft.y9public.entity.*;
@@ -49,4 +50,15 @@ public interface ApproveService {
 
     //构建审批记录
     Map<String,Object> buildApprove(Approve approve,String flowId);
+
+    //发布接口
+    Map<String, Object> pubInterface(InterfaceApplyDTO apply);
+
+    //停用接口
+    Map<String, Object> stopInterface(InterfaceApplyDTO apply);
+
+    //调用接口申请
+    Map<String, Object> useInterfaceApply(InterfaceApplyDTO apply, Boolean flag);
+
+
 }
