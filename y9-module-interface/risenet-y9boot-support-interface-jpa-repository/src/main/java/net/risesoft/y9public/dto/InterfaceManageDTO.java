@@ -105,6 +105,10 @@ public class InterfaceManageDTO extends BaseEntity implements Serializable{
 
 	private Boolean isResponseFile;
 
+	private String executeInstanceId;
+
+	private String executeInstanceIdBack;
+
 	public InterfaceManageDTO(InterfaceManage dto) {
 		this.id = dto.getId();
 		this.interfaceName = dto.getInterfaceName();
@@ -138,6 +142,8 @@ public class InterfaceManageDTO extends BaseEntity implements Serializable{
 		this.systemId = dto.getSystemId();
 		this.systemName = dto.getSystemName();
 		this.isResponseFile = dto.getIsResponseFile();
+		this.executeInstanceId = dto.getExecuteInstanceId();
+		this.executeInstanceIdBack = dto.getExecuteInstanceIdBack();
 	}
 }
 

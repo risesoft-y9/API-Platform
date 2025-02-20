@@ -64,4 +64,8 @@ public interface InterfaceManageService {
 
     //下载接口文档
     void downLoadInterfaceFile(String sameId,String version,String fileName, HttpServletResponse response);
+
+    List<InstanceNum> getRegisterNum(String instanceId);
+
+    Map<String,Object> getIpPortByInterfaceId(String instanceId);
 }

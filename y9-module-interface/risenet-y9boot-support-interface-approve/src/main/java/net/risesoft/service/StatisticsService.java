@@ -24,4 +24,6 @@ public interface StatisticsService {
     Map<String, Object> getRunningCount();
 
     Map<String, Object> getLogMonitoringOptions();
+
+    Map<String,Object> getInvokeNumToday(String id);
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,4 +21,6 @@ public interface CallApiLogRepository extends JpaRepository<CallApiRequestLogInf
     @Query(value = "SELECT GROUP_CONCAT(DISTINCT APPLYSYSTEMNAME) as applySystemName,DEPTNAME as deptName" +
             "  from y9_call_api_request_log_info group by DEPTNAME" ,nativeQuery = true)
     List<Map<String,Object>> getDataGroupByDeptName();
+
+    Long countByRequestStartTimeBetweenAndInterfaceIdIn(Date start, Date end, List<String> interfaceIds);
 }

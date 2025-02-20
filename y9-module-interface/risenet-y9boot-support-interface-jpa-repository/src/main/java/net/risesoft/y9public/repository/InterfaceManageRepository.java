@@ -34,4 +34,7 @@ public interface InterfaceManageRepository extends JpaRepository<InterfaceManage
 
     @Query(value="select count(*) from Y9_INTERFACE_MANAGE_INFO",nativeQuery = true)
     long getAllCount();
+
+    @Query(value="select id from InterfaceManage where interfaceStatus='发布' and isDelete='N' and executeInstanceId =?1")
+    List<Long> getAllByExecuteInstanceId(String id);
 }

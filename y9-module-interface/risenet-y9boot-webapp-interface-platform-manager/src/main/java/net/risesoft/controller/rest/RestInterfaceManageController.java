@@ -269,6 +269,39 @@ public class RestInterfaceManageController {
     }
 
 
+    //获取注册接口数
+    @RequestMapping("/getRegisterNum")
+    @ResponseBody
+    @RiseLog(operationType = OperationTypeEnum.BROWSE, operationName = "获取执行端注册接口数量")
+    public Map<String, Object> getRegisterNum(String id) {
+        Map<String, Object> map = new HashMap<>();
+        List<InstanceNum> list = interfaceManageService.getRegisterNum(id);
+        if (list != null) {
+            map.put("status", "success");
+        } else {
+            map.put("status", "error");
+        }
+        map.put("code", "0");
+        map.put("data", list);
+        return map;
+    }
+
+    //根据接口id获取实例ip端口
+    @RequestMapping("/getIpPortByInterfaceId")
+    @ResponseBody
+    @RiseLog(operationType = OperationTypeEnum.BROWSE, operationName = "根据接口id获取实例ip端口")
+    public Map<String, Object> getIpPortByInterfaceId(String id) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String,Object> data = interfaceManageService.getIpPortByInterfaceId(id);
+        if (data != null) {
+            map.put("status", "success");
+        } else {
+            map.put("status", "error");
+        }
+        map.put("code", "0");
+        map.put("data", data);
+        return map;
+    }
 }
 
 

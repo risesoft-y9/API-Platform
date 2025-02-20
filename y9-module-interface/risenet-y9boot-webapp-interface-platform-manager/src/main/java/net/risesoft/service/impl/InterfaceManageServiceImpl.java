@@ -1,6 +1,7 @@
 package net.risesoft.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import net.risesoft.enums.platform.ManagerLevelEnum;
@@ -24,10 +25,16 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -41,6 +48,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,6 +72,13 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
     private InterfaceApplyService interfaceApplyService;
     @Autowired
     private AuthDictRepository authDictRepository;
+
+    @Value("${eureka.client.service-url.defaultZone}")
+    private String eurekaUrl;
+    @Value("${spring.eureka.token}")
+    private String token;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public Page<InterfaceManageDTO> getInterfaceList(InterfaceManageDTO interfaceManageDTO) {
@@ -186,9 +201,60 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
             interfaceManage.setPersonName(person.getName());
         }
 
+        String base64Token = Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Basic "+base64Token);
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        ResponseEntity<String> response = restTemplate.exchange(eurekaUrl+"apps", HttpMethod.GET, entity, String.class);
+        String jsonData = response.getBody();
+        HashMap apps = JSONArray.parseObject(jsonData,HashMap.class);
+        List<String> instanceIds = getInstanceIds(apps);
+        if(instanceIds.size()==0){
+            map.put("status", false);
+            map.put("errMsg","保存失败，实例已经下线");
+            return map;
+        }else {
+            Boolean isUp = false;
+            for(String instanceId : instanceIds){
+                if(instanceId.equals(interfaceManage.getExecuteInstanceId())){
+                    isUp = true;
+                    break;
+                }
+            }
+            if(!isUp){
+                map.put("status", false);
+                map.put("errMsg","实例已经下线");
+                return map;
+            }
+            List<InstanceNum> instances = interfaceManageRepository.getAllCountGroupByInstanceID();
+            int min = 100000;
+            String instanceId = "";
+            HashMap<String,Integer> instanceMap = new HashMap<>();
+            for(InstanceNum instance : instances){
+                instanceMap.put(instance.getInstanceId(),instance.getNum());
+            }
+            for(String id : instanceIds){
+                if(instanceMap.get(id)!=null){
+                    try {
+                        if(instanceMap.get(id)<min){
+                            min = instanceMap.get(id);
+                            instanceId = id;
+                        }
+                    }catch (Exception e){
+
+                    }
+                }else {
+                    instanceId = id;
+                    break;
+                }
+            }
+            interfaceManage.setExecuteInstanceIdBack(instanceId);
+        }
+
         InterfaceManage interfaceManage1 = interfaceManageRepository.save(interfaceManage);
         if (interfaceManage1 == null) {
             map.put("status", false);
+            map.put("errMsg","保存接口信息时失败");
         } else {
             map.put("id", interfaceManage1.getId());
             map.put("status", true);
@@ -370,7 +436,7 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
                 }
             } else {
                 dataMap.put("status", false);
-                dataMap.put("msg", "新增失败");
+                dataMap.put("msg", "新增失败"+map.get("errMsg"));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -914,6 +980,94 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
         }
     }
 
+    @Override
+    public List<InstanceNum> getRegisterNum(String instanceId) {
+        List<InstanceNum> list = new ArrayList<>();
+        if(StringUtils.isNotBlank(instanceId)){
+            List<InstanceNum> instances = interfaceManageRepository.getAllCountGroupByInstanceID();
+            InstanceNum instanceNum = null;
+            for(InstanceNum instance : instances){
+                if(instanceId.equals(instance.getInstanceId())){
+                    instanceNum = instance;
+                }
+            }
+            if(instanceNum == null){
+                instanceNum = new InstanceNum();
+                instanceNum.setNum(0);
+                instanceNum.setInstanceId(instanceId);
+            }
+            list.add(instanceNum);
+        }else {
+            String base64Token = Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Basic "+base64Token);
+            HttpEntity<String> entity = new HttpEntity<>(null, headers);
+            ResponseEntity<String> response = restTemplate.exchange(eurekaUrl+"apps", HttpMethod.GET, entity, String.class);
+            String jsonData = response.getBody();
+            HashMap apps = JSONArray.parseObject(jsonData,HashMap.class);
+            List<String> instanceIds = getInstanceIds(apps);
+            HashMap<String,Integer> map = new HashMap<>();
+            List<InstanceNum> instances = interfaceManageRepository.getAllCountGroupByInstanceID();
+            for(InstanceNum instance : instances){
+                map.put(instance.getInstanceId(),instance.getNum());
+            }
+            for(String instance : instanceIds){
+                InstanceNum instanceNum = new InstanceNum();
+                if(map.get(instance)!=null){
+                    instanceNum.setNum(map.get(instance));
+                    instanceNum.setInstanceId(instance);
+                }else {
+                    instanceNum.setInstanceId(instance);
+                    instanceNum.setNum(0);
+                }
+                list.add(instanceNum);
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public Map<String, Object> getIpPortByInterfaceId(String instanceId) {
+        Map<String,Object> ipPortMap = null;
+        InterfaceManage interfaceManage = interfaceManageRepository.findById(instanceId).orElse(null);
+        if(interfaceManage!=null){
+            String base64Token = Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Basic "+base64Token);
+            HttpEntity<String> entity = new HttpEntity<>(null, headers);
+            ResponseEntity<String> response = restTemplate.exchange(eurekaUrl+"apps", HttpMethod.GET, entity, String.class);
+            String jsonData = response.getBody();
+            HashMap apps = JSONArray.parseObject(jsonData,HashMap.class);
+            List<Map<String,String>> list = getInstances(apps);
+            for(Map<String,String> map : list){
+                if(StringUtils.isNotBlank(interfaceManage.getExecuteInstanceId())){
+                    if(interfaceManage.getExecuteInstanceId().equals(map.get("instanceId"))){
+                        ipPortMap = new HashMap<>();
+                        ipPortMap.put("ip",map.get("ip"));
+                        ipPortMap.put("port",map.get("port"));
+                        ipPortMap.put("hostName",map.get("hostName"));
+                        return ipPortMap;
+                    }
+                }
+            }
+            if(ipPortMap==null){
+                for(Map<String,String> map : list){
+                    if(StringUtils.isNotBlank(interfaceManage.getExecuteInstanceIdBack())){
+                        if(interfaceManage.getExecuteInstanceIdBack().equals(map.get("instanceId"))){
+                            ipPortMap = new HashMap<>();
+                            ipPortMap.put("ip",map.get("ip"));
+                            ipPortMap.put("port",map.get("port"));
+                            ipPortMap.put("hostName",map.get("hostName"));
+                            return ipPortMap;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
     private InterfaceManageDTO readJson(InputStream inputStream) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         InterfaceManageDTO jsonStr = objectMapper.readValue(inputStream, InterfaceManageDTO.class);
@@ -1088,5 +1242,62 @@ public class InterfaceManageServiceImpl implements InterfaceManageService {
             }
         }
         return true;
+    }
+    //解析实例信息,获取全部实例ID
+    private List<String> getInstanceIds(Map data){
+        List<String> instanceIds = new ArrayList<>();
+        if(data.get("applications") instanceof Map){
+            HashMap applications = ((JSONObject)data.get("applications")).toJavaObject(HashMap.class);
+            if(applications.get("application") instanceof List){
+                for(Object obj : (JSONArray)applications.get("application")){
+                    if(obj instanceof Map){
+                        HashMap appMap = ((JSONObject) obj).toJavaObject(HashMap.class);
+                        if(appMap.get("instance") instanceof List){
+                            for(Object o : (JSONArray)appMap.get("instance")){
+                                if(o instanceof Map){
+                                    HashMap map = ((JSONObject) o).toJavaObject(HashMap.class);
+                                    if(map.get("status").toString().toUpperCase().equals("UP")){
+                                        instanceIds.add(String.valueOf(map.get("instanceId")));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return instanceIds;
+    }
+
+    //解析实例信息,获取全部实例ID
+    private List<Map<String,String>> getInstances(Map data){
+        List<Map<String,String>> instances = new ArrayList<>();
+        if(data.get("applications") instanceof Map){
+            HashMap applications = ((JSONObject)data.get("applications")).toJavaObject(HashMap.class);
+            if(applications.get("application") instanceof List){
+                for(Object obj : (JSONArray)applications.get("application")){
+                    if(obj instanceof Map){
+                        HashMap appMap = ((JSONObject) obj).toJavaObject(HashMap.class);
+                        if(appMap.get("instance") instanceof List){
+                            for(Object o : (JSONArray)appMap.get("instance")){
+                                if(o instanceof Map){
+                                    HashMap map = ((JSONObject) o).toJavaObject(HashMap.class);
+                                    if(map.get("status").toString().toUpperCase().equals("UP")){
+                                        HashMap<String,String> app = new HashMap<>();
+                                        app.put("instanceId",String.valueOf(map.get("instanceId")));
+                                        app.put("ip",String.valueOf(map.get("ipAddr")));
+                                        app.put("hostName",String.valueOf(map.get("hostName")));
+                                        HashMap portMap = ((JSONObject) map.get("port")).toJavaObject(HashMap.class);
+                                        app.put("port",String.valueOf(portMap.get("$")));
+                                        instances.add(app);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return instances;
     }
 }

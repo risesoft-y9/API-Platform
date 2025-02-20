@@ -16,12 +16,21 @@ server:
   tomcat:
     uri-encoding: UTF-8
 eureka:
+  server-application: "interfaceplatform" #eureka服务端服务名
   client:
     enabled: true  # 启用Eureka客户端
     service-url:
       defaultZone: http://admin:123@localhost:7055/interfaceManager/eureka/  # Eureka服务器地址
     fetch-registry: true  # 是否从Eureka服务器获取注册信息
     register-with-eureka: true  # 是否注册自身到Eureka服务
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # 暴露所有端点，或者你可以指定具体要暴露的端点名称，用逗号分隔
+  endpoint:
+    health:
+      show-details: always
 spring:
   application:
     name: interfaceExecute
@@ -183,7 +192,7 @@ y9:
         allowBasicAuthentication: true
         allowFormEncodedBodyParameter: true
         allowUriQueryParameter: true
-        protectedUrlPatterns: /api/*
+        protectedUrlPatterns: /api/*,/actuator/*
         opaque:
           client-id: clientid
           client-secret: secret

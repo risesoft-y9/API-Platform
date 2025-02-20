@@ -1,6 +1,8 @@
 package net.risesoft.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.EurekaClient;
 import net.risesoft.model.user.UserInfo;
 import net.risesoft.service.UseInterfaceService;
 import net.risesoft.util.*;
@@ -15,6 +17,8 @@ import net.risesoft.y9public.repository.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -58,6 +62,11 @@ public class UseInterfaceServiceImpl implements UseInterfaceService {
     private CallLogUtil calllogUtil;
     @Autowired
     private BlacklistingRepository blacklistingRepository;
+    @Qualifier("eurekaClient")
+    @Autowired
+    private EurekaClient eurekaClient;
+    @Value("${eureka.server-application}")
+    private String serviceName;
 
     public static final String regx = "@-@";
 
@@ -75,7 +84,34 @@ public class UseInterfaceServiceImpl implements UseInterfaceService {
 
         Map<String, Object> body = new HashMap<>();
         try {
+            InstanceInfo instanceInfo = null;
             try {
+                instanceInfo = eurekaClient.getNextServerFromEureka(serviceName, false);
+            }catch (Exception e){
+                map.put("msg", "请求失败！未查询到实例");
+
+                logMap.put("status", "未查询到实例");
+                logMap.put("errMsg", "请求失败！未查询到实例");
+                logMap.put("code", "401");
+                return ResponseEntity.ok().body(map);
+            }
+            try {
+                if (instanceInfo == null || StringUtils.isBlank(instanceInfo.getInstanceId())) {
+                    map.put("msg", "请求失败！未注册的实例");
+
+                    logMap.put("status", "未注册的实例");
+                    logMap.put("errMsg", "请求失败！未注册的实例");
+                    logMap.put("code", "401");
+                    return ResponseEntity.ok().body(map);
+                }
+                if(!InstanceInfo.InstanceStatus.UP.equals(instanceInfo.getStatus())){
+                    map.put("msg", "请求失败！当前实例未在线");
+
+                    logMap.put("status", "实例未在线");
+                    logMap.put("errMsg", "请求失败！"+instanceInfo.getInstanceId()+"实例未在线");
+                    logMap.put("code", "401");
+                    return ResponseEntity.ok().body(map);
+                }
                 interfaceApply = interfaceApplyRepository.findDataByUserKey(id);
                 if (StringUtils.isBlank(interfaceApply.getIsEffective()) || "N".equals(interfaceApply.getIsEffective())) {
                     map.put("msg", "请求失败！申请信息已经过期请重新申请");
@@ -122,6 +158,13 @@ public class UseInterfaceServiceImpl implements UseInterfaceService {
                 logMap.put("status", "请求失败");
                 logMap.put("errMsg", "请求失败！无权限");
                 logMap.put("code", "501");
+                return ResponseEntity.ok().body(map);
+            }
+            if(!(instanceInfo.getInstanceId().equals(interfaceManage.getExecuteInstanceId()) || instanceInfo.getInstanceId().equals(interfaceManage.getExecuteInstanceIdBack()))){
+                map.put("msg", "请求失败！该接口未注册到当前实例");
+                logMap.put("status", "请求失败");
+                logMap.put("errMsg", "请求失败！该接口未注册到当前实例");
+                logMap.put("code", "401");
                 return ResponseEntity.ok().body(map);
             }
             InterfaceManageDTO interfaceManageDTO = new InterfaceManageDTO(interfaceManage);

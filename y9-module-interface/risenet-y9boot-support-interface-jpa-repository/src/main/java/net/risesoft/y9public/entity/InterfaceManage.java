@@ -156,6 +156,13 @@ public class InterfaceManage extends BaseEntity implements Serializable{
 	@Comment(value = "是否返回文件")
 	private Boolean isResponseFile;
 
+	@Column(name = "EXECUTE_INSTANCE_ID", columnDefinition = "varchar(500) default '' comment '执行端实例ID'")
+	@Comment(value = "执行实例ID")
+	private String executeInstanceId;
+
+	@Column(name = "EXECUTE_INSTANCE_ID_BACK", columnDefinition = "varchar(500) default '' comment '备选执行端实例ID'")
+	@Comment(value = "备用实例ID")
+	private String executeInstanceIdBack;
 
 	public InterfaceManage(InterfaceManageDTO dto) {
 		this.id = dto.getId();
@@ -190,6 +197,8 @@ public class InterfaceManage extends BaseEntity implements Serializable{
 		this.systemId = dto.getSystemId();
 		this.systemName = dto.getSystemName();
 		this.isResponseFile = dto.getIsResponseFile();
+		this.executeInstanceId = dto.getExecuteInstanceId();
+		this.executeInstanceIdBack = dto.getExecuteInstanceIdBack();
 	}
 }
 

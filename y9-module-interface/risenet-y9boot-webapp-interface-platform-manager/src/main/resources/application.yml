@@ -24,6 +24,8 @@ eureka:
     enabled: false # 启用服务面板
     path: / # 服务面板路径
   client:
+    service-url:
+      defaultZone: http://localhost:8080/interfaceManager/eureka/  # Eureka服务器地址本机地址
     fetch-registry: false  # 是否从Eureka服务器获取注册信息
     register-with-eureka: false  # 是否注册自身到Eureka服务器
 spring:

@@ -109,4 +109,21 @@ public class RestStatisticsController {
 	public Map<String, Object> getRealTimeLog(int page, int limit){
 		return statisticsService.getRealTimeLog(page, limit);
 	}
+
+	//获取今日调用次数
+	@RequestMapping("/getInvokeNumToday")
+	@ResponseBody
+	@RiseLog(operationType = OperationTypeEnum.BROWSE, operationName = "获取执行端今日调用接口数量")
+	public Map<String, Object> getInvokeNumToday(String id) {
+		Map<String, Object> map = new HashMap<>();
+		Map<String,Object> data = statisticsService.getInvokeNumToday(id);
+		if (data != null) {
+			map.put("status", "success");
+		} else {
+			map.put("status", "error");
+		}
+		map.put("code", "0");
+		map.put("data", data!=null?data.get("data"):0);
+		return map;
+	}
 }

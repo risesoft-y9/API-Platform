@@ -24,6 +24,9 @@ import javax.persistence.criteria.Root;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -142,6 +145,36 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
         return res;
     }
+
+    @Override
+    public Map<String, Object> getInvokeNumToday(String id) {
+        Map<String,Object> map = new HashMap<>();
+        List<Long> interfaceIds = interfaceManageRepository.getAllByExecuteInstanceId(id);
+        if(interfaceIds!=null && interfaceIds.size()!=0){
+            // 获取当天的开始时间和结束时间
+            LocalDateTime startTime = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MIDNIGHT);
+            LocalDateTime endTime = LocalDateTime.of(LocalDateTime.now().toLocalDate(), LocalTime.MAX);
+
+            // 指定时区，将LocalDateTime转换为ZonedDateTime
+            ZonedDateTime startZonedDateTime = startTime.atZone(ZoneId.systemDefault());
+            ZonedDateTime endZonedDateTime = endTime.atZone(ZoneId.systemDefault());
+
+            // 将ZonedDateTime转换为Date
+            Date startDate = Date.from(startZonedDateTime.toInstant());
+            Date endDate = Date.from(endZonedDateTime.toInstant());
+
+            List<String> interfaceIdsStr = new ArrayList<>();
+            for(Long interfaceId : interfaceIds){
+                interfaceIdsStr.add(interfaceId.toString());
+            }
+            Long count = callApiLogRepository.countByRequestStartTimeBetweenAndInterfaceIdIn(startDate,endDate,interfaceIdsStr);
+            map.put("data",count);
+            return map;
+        }else {
+            return null;
+        }
+    }
+
 
     @Override
     public Map<String, Object> getLogMonitoringInfo(Map<String, Object> conditionMap) {
