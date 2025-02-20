@@ -22,7 +22,7 @@ function y9Request(baseUrl = '') {
     let requestList = new Set();
 
     const service = axios.create({
-        baseURL: import.meta.env.VUE_APP_CONTEXT,
+        baseURL: baseUrl==""?import.meta.env.VUE_APP_CONTEXT:baseUrl,
         withCredentials: true,
         timeout: 0,
     });

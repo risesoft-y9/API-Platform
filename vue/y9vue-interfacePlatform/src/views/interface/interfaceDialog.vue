@@ -143,8 +143,8 @@
 import { computed, h, ref, inject } from 'vue';
 import { useSettingStore } from '@/store/modules/settingStore';
 import { useI18n } from 'vue-i18n';
-import { $validCheck } from '@/utils/validate'
-import { saveUpdateVersionInfo, saveInterfaceInfo, getInterfaceId, getInterfaceInfoById,downLoadInterfaceFile } from '@/api/interface/interface'
+import { $validCheck } from '@/utils/validate' 
+import { saveUpdateVersionInfo, saveInterfaceInfo, getInterfaceId, getInterfaceInfoById,downLoadInterfaceFile,getRegisterNum } from '@/api/interface/interface'
 import {getListByType,getListByPid} from '@/api/systemidentifier/systemidentifier'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import interfaceAuth from '@/views/auth/interfaceAuth.vue';
@@ -152,6 +152,8 @@ import parameter from '../parameter/parameterTable.vue';
 import { useRoute } from 'vue-router';
 import { nextTick } from 'vue';
 
+//实例信息
+const exceuteInstanceInfo = ref([])
 // 注入 字体对象
 const fontSizeObj: any = inject('sizeObjInfo');
 const { t } = useI18n();
@@ -850,7 +852,8 @@ let ruleFormConfig = ref({
             { required: true, message: computed(() => t('请输入链接地址')), trigger: 'blur' },
             { validator: validateUrl, trigger: 'blur' }
         ],
-        illustrate: [{ required: true, message: computed(() => t('接口描述不能为空')), trigger: 'blur' }]
+        illustrate: [{ required: true, message: computed(() => t('接口描述不能为空')), trigger: 'blur' }],
+        executeInstanceId:[{required:true,message:computed(()=> t('部署实例不能为空')),trigger:'blur'}]
     },
     itemList: [
         {
@@ -944,6 +947,14 @@ let ruleFormConfig = ref({
             prop: 'isLimit',
             props: {
                 slotName: "isAuth"
+            }
+        },
+        {
+            type: 'select',
+            label: computed(() => t('部署实例')),
+            prop: 'executeInstanceId',
+            props: {
+                options: []
             }
         },
         {
@@ -1267,6 +1278,16 @@ async function edit(id) {
     }
     let res = await getInterfaceInfoById(para)
     ruleFormConfig.value.model = res.data
+    exceuteInstanceInfo.value = []
+    let resExecute = await getRegisterNum()
+    //let executeTable = analysisData(resExecute)
+    for(let it of resExecute.data){
+        let item = {
+            label: computed(() => t("实例ID:" + it.instanceId + "    已注册接口数："+it.num)), value: it.instanceId
+        }
+        exceuteInstanceInfo.value.push(item)
+
+    }
     for (let it of ruleFormConfig.value.itemList) {
         if (it.props == undefined) {
             it.props = {
@@ -1274,6 +1295,9 @@ async function edit(id) {
             }
         } else {
             it.props.disabled = false
+        }
+        if(it.prop=="executeInstanceId"){
+            it.props.options = exceuteInstanceInfo.value;
         }
     }
     initData(res.data)
@@ -1291,6 +1315,16 @@ async function updateVersion(id) {
     }
     let res = await getInterfaceInfoById(para)
     ruleFormConfig.value.model = res.data
+    exceuteInstanceInfo.value = []
+    let resExecute = await getRegisterNum()
+    //let executeTable = analysisData(resExecute)
+    for(let it of resExecute.data){
+        let item = {
+            label: computed(() => t("实例ID:" + it.instanceId + "    已注册接口数："+it.num)), value: it.instanceId
+        }
+        exceuteInstanceInfo.value.push(item)
+
+    }
     for (let it of ruleFormConfig.value.itemList) {
         if (it.props == undefined) {
             it.props = {
@@ -1298,6 +1332,9 @@ async function updateVersion(id) {
             }
         } else {
             it.props.disabled = false
+        }
+        if(it.prop=="executeInstanceId"){
+            it.props.options = exceuteInstanceInfo.value;
         }
     }
     initData(res.data)
@@ -1329,6 +1366,16 @@ async function view(id, show) {
     }
     let res = await getInterfaceInfoById(para)
     ruleFormConfig.value.model = res.data
+    exceuteInstanceInfo.value = []
+    let resExecute = await getRegisterNum()
+    //let executeTable = analysisData(resExecute)
+    for(let it of resExecute.data){
+        let item = {
+            label: computed(() => t("实例ID:" + it.instanceId + "    已注册接口数："+it.num)), value: it.instanceId
+        }
+        exceuteInstanceInfo.value.push(item)
+
+    }
     for (let it of ruleFormConfig.value.itemList) {
         if (it.props == undefined) {
             it.props = {
@@ -1336,6 +1383,9 @@ async function view(id, show) {
             }
         } else {
             it.props.disabled = true
+        }
+        if(it.prop=="executeInstanceId"){
+            it.props.options = exceuteInstanceInfo.value;
         }
     }
     initData(res.data)
@@ -1355,6 +1405,16 @@ async function approveView(id, show) {
     }
     let res = await getInterfaceInfoById(para)
     ruleFormConfig.value.model = res.data
+    exceuteInstanceInfo.value = []
+    let resExecute = await getRegisterNum()
+    //let executeTable = analysisData(resExecute)
+    for(let it of resExecute.data){
+        let item = {
+            label: computed(() => t("实例ID:" + it.instanceId + "    已注册接口数："+it.num)), value: it.instanceId
+        }
+        exceuteInstanceInfo.value.push(item)
+
+    }
     let arry = []
     for (let it of ruleFormConfig.value.itemList) {
         if (it.props == undefined) {
@@ -1375,6 +1435,9 @@ async function approveView(id, show) {
                 }
             }
             arry.push(interfaceFileUrl)
+        }
+        if(it.prop=="executeInstanceId"){
+            it.props.options = exceuteInstanceInfo.value;
         }
     }
     ruleFormConfig.value.itemList = arry;

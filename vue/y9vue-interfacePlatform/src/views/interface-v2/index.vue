@@ -752,8 +752,7 @@ const uploadInterfaceFile = (id) => {
 }
 //接口文档预览按钮
 const viewInterfaceFile = (url, interfaceId) => {
-    console.log(url)
-    console.log(interfaceId)
+
     if (url != null && url != undefined && url != "") {
         if (props.status == "发布" || props.status == "申请") {
             let para = {

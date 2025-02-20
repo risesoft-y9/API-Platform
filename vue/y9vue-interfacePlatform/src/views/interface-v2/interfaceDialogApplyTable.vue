@@ -144,7 +144,7 @@ import { computed, h, ref, inject } from 'vue';
 import { useSettingStore } from '@/store/modules/settingStore';
 import { useI18n } from 'vue-i18n';
 import { $validCheck } from '@/utils/validate'
-import { saveUpdateVersionInfo, saveInterfaceInfo, getInterfaceId, getInterfaceInfoById } from '@/api/interface/interface'
+import { saveUpdateVersionInfo, saveInterfaceInfo, getInterfaceId, getInterfaceInfoById,getRegisterNum } from '@/api/interface/interface'
 import {getListByType,getListByPid} from '@/api/systemidentifier/systemidentifier'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import interfaceAuth from '@/views/auth/interfaceAuth.vue';
@@ -152,6 +152,8 @@ import parameter from '../parameter/parameterTable.vue';
 import { useRoute } from 'vue-router';
 import { nextTick } from 'vue';
 
+//部署实例信息
+const exceuteInstanceInfo = ref([])
 // 注入 字体对象
 const fontSizeObj: any = inject('sizeObjInfo');
 const { t } = useI18n();
@@ -961,6 +963,14 @@ let ruleFormConfig = ref({
             }
         },
         {
+            type: 'select',
+            label: computed(() => t('部署实例')),
+            prop: 'executeInstanceId',
+            props: {
+                options: []
+            }
+        },
+        {
             type: 'input',
             label: computed(() => t('接口负责人')),
             prop: 'head',
@@ -1246,6 +1256,15 @@ async function view(id, show) {
     }
     let res = await getInterfaceInfoById(para)
     ruleFormConfig.value.model = res.data
+    let resExecute = await getRegisterNum()
+    //let executeTable = analysisData(resExecute)
+    for(let it of resExecute.data){
+        let item = {
+            label: computed(() => t("实例ID:" + it.instanceId + "    已注册接口数："+it.num)), value: it.instanceId
+        }
+        exceuteInstanceInfo.value.push(item)
+
+    }
     for (let it of ruleFormConfig.value.itemList) {
         if (it.props == undefined) {
             it.props = {
@@ -1253,6 +1272,9 @@ async function view(id, show) {
             }
         } else {
             it.props.disabled = true
+        }
+        if(it.prop=="executeInstanceId"){
+            it.props.options = exceuteInstanceInfo.value;
         }
     }
     initData(res.data)

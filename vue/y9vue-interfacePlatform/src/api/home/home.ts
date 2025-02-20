@@ -89,3 +89,17 @@ export const getRealTimeLog = async (params) => {
         params: params,
     });
 };
+
+/**
+ * 今日该执行端调用接口执行次数
+ * @param params ：page、limit
+ * @returns
+ */
+export const getInvokeNumToday = async (params) => {
+    return await platformRequest({
+        url: "/api/rest/statistics/getInvokeNumToday",
+        method: 'GET',
+        cType: false,
+        params: params,
+    });
+};

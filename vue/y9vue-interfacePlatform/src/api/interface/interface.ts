@@ -213,3 +213,31 @@ export const downLoadInterfaceFile = async (uri) => {
         responseType:'blob'
     });
 };
+
+/**
+ * 获取注册接口数量列表--执行端
+ * @param params 
+ * @returns 
+ */
+export const getRegisterNum = async (params) => {
+    return await platformRequest({
+        url: "/api/rest/interface/getRegisterNum",
+        method: 'GET',
+        cType: false,
+        params: params,
+    });
+};
+
+/**
+ * 获取接口注册执行端IP端口
+ * @param params 
+ * @returns 
+ */
+export const getIpPortByInterfaceId = async (params) => {
+    return await platformRequest({
+        url: "/api/rest/interface/getIpPortByInterfaceId",
+        method: 'GET',
+        cType: false,
+        params: params,
+    });
+};

@@ -23,16 +23,63 @@
         </template>
     </y9Dialog>
 
+    <y9Dialog v-model:config="openChartConfig">
+        <template v-slot>
+            <el-card class="box-card">
+            <div class="card-header">
+              <span>{{ $t('服务使用概况') }}</span>
+              <div style="height: 32px;"></div>
+            </div>
+            <div class="overview-content">
+              <!-- 数值展示 -->
+              <div class="stat-items">
+                <div class="stat-item">
+                  <h2>{{ serviceUsedData.registerCount }}</h2>
+                  <span>{{ $t('注册接口数') }}</span>
+                </div>
+                <div class="stat-item">
+                  <h2>{{ serviceUsedData.aveCount }}</h2>
+                  <span>{{ $t('平均每天请求次数') }}</span>
+                </div>
+                <div class="stat-item">
+                  <h2>{{ serviceUsedData.todayCount }}</h2>
+                  <span>{{ $t('今日调用次数') }}</span>
+                </div>
+              </div>
+            </div>
+          </el-card>
+          <el-row class="bottomArea">
+            <el-col :span="4"></el-col>
+            <el-col :span="8">
+                <el-row class="labelTitle"><span>系统CPU使用率</span></el-row>
+                <el-row>
+                    <div ref="cpuChartContainerRef" style="width: 100%; height: 200px;"></div>
+                </el-row>
+            </el-col>
+            <el-col :span="8">
+                <el-row class="labelTitle"><span>内存使用率</span></el-row>
+                <el-row>
+                    <div ref="memoryChartContainerRef" style="width: 100%; height: 200px;"></div>
+                </el-row>
+            </el-col>
+            <el-col :span="4"></el-col>
+          </el-row>
+        </template>
+    </y9Dialog>
 </template>
 <script lang="ts" setup>
-import { computed, h, ref, inject } from 'vue';
+import { computed, h, ref, inject, nextTick } from 'vue';
 import { useSettingStore } from '@/store/modules/settingStore';
 import { useI18n } from 'vue-i18n';
 import { $validCheck } from '@/utils/validate'
-import { getPage, saveInfo, getInfoById, delInfoById, updateEnable } from '@/api/execute/execute'
-import {getMayApplyInterfaceList} from '@/api/interface/interface'
+import { getPage, saveInfo, delInfoById } from '@/api/execute/execute'
+import {getRegisterNum} from '@/api/interface/interface'
+import { getCpuUsed, getMaxMemory, getUsedMemory,getHttpServerReqs } from '@/api/serviceResourceIndicators/serviceResourceIndicators'
+import {getInvokeNumToday} from "@/api/home/home";
 import { ElMessage, ElMessageBox, ElSwitch } from 'element-plus';
 import '@/assets/css/tablestatusfontcolor.css';
+import * as echarts from 'echarts';
+import 'echarts-liquidfill';
 
 // 注入 字体对象
 const fontSizeObj: any = inject('sizeObjInfo');
@@ -42,9 +89,17 @@ const selectedDate = ref();
 const query: any = ref({});
 const filterRef = ref();
 const interfaceList = ref([]);
+const cpuChartContainerRef = ref();
+const memoryChartContainerRef = ref();
+const serviceUsedData = ref({
+    registerCount:0,
+    todayCount:0,
+    aveCount:0
+})
 
 const limitInfo = ref(false)
 const sameId = ref()
+const qbaseUrl = ref()
 
 //表格配置
 let y9TableConfig = ref({
@@ -123,10 +178,12 @@ let y9TableConfig = ref({
         {
             title: computed(() => t('操作')),
             fixed: 'right',
+            width: 210,
             render: (row) => {
                 return h('div', [h('span', { onClick: () => { view(row) } }, t("详情")),
                 h('span', { class: 'leftMargin', onClick: () => { edit(row,"OUT_OF_SERVICE") } }, t('下线')),
                 h('span', { class: 'leftMargin', onClick: () => { edit(row,"UP") } }, t('上线')),
+                h('span', { class: 'leftMargin', onClick: () => { openChartView(row) } }, t('服务使用情况')),
                 ]);
             }
         }
@@ -145,7 +202,15 @@ const filterOperaConfig = ref({
             value: '',
             key: 'name',
             label: computed(() => t('名称')),
-            labelWidth: '82px',
+            labelWidth: '42px',
+            span: settingStore.device === 'mobile' ? 24 : 6
+        },
+        {
+            type: 'input',
+            value: '',
+            key: 'ip',
+            label: computed(() => t('IP')),
+            labelWidth: '42px',
             span: settingStore.device === 'mobile' ? 24 : 6
         },
         {
@@ -216,7 +281,8 @@ function analysisData(data){
                 ip: instance.ipAddr,
                 port: instance.port["$"],
                 status: instance.status,
-                createTime: instance.leaseInfo.registrationTimestamp
+                createTime: instance.leaseInfo.registrationTimestamp,
+                baseUrl: instance.healthCheckUrl.slice(0,-6)
             }
             tableData.push(instanceData)
         }
@@ -251,6 +317,16 @@ const validateNumber = (rule: any, value: any, callback: any) => {
         callback();
     }
 };
+// 服务器使用情况
+let openChartConfig = ref({
+    show: false,
+    title: computed(() => t('')),
+    showFooter: true,
+    onOkLoading: true,
+    onOk:(newConfig) =>{
+        openChartView(qbaseUrl.value)
+    }
+});
 
 // 增加 修改应用 弹框的变量配置 控制
 let addDialogConfig = ref({
@@ -372,24 +448,6 @@ let ruleFormConfig = ref({
         labelAlign: 'center',
     }
 });
-function addDialog() {
-    initInterfaceList()
-    ruleFormConfig.value.model = {isEnable: true }
-    for (let it of ruleFormConfig.value.itemList) {
-        if (it.props == undefined) {
-            it.props = {
-                disabled: false
-            }
-        } else {
-            it.props.disabled = false
-        }
-    }
-    addDialogConfig.value.okText = "保存"
-    addDialogConfig.value.title = computed(() => t('新增黑名单信息'))
-    addDialogConfig.value.show = true
-}
-
-
 //编辑
 async function edit(row,type) {
     let alertText = "下线"
@@ -465,55 +523,243 @@ async function view(data) {
     addDialogConfig.value.title = computed(() => t('查看实例信息'))
     addDialogConfig.value.show = true
 }
-//删除
-async function delData(id) {
-    ElMessageBox.confirm(
-        '是否确认删除这条数据',
-        '删除数据确认',
-        {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'info',
-            draggable: true
-        }
-    ).then(() => {
-        let para = {
-            id: id
-        }
-        delInfoById(para).then((res) => {
-            if (res.status == "success") {
-                ElMessage({ type: 'info', message: '删除成功' })
-                getDataList(null)
-            } else {
-                ElMessage({ type: 'warning', message: "删除失败" + res.msg })
-            }
+const openChartView = (data)=>{
+    qbaseUrl.value = data
+    openChartConfig.value.okText = "刷新"
+    openChartConfig.value.title = computed(() => t('查看服务使用情况'))
+    openChartConfig.value.show = true
+    let baseData = {
+        baseUrl:data.baseUrl
+    }
+    getCpuUsed(baseData).then((res)=>{
+        console.log(res)
+        nextTick(() => {
+            const myChart = echarts.init(cpuChartContainerRef.value)
+            myChart.setOption(buildOptions(parseFloat(res.measurements[0].value.toFixed(4))))
         })
-    }).catch(() => {
+    })
+    getMaxMemory(baseData).then((res) => {
+        let maxMemory = res.measurements[0].value
+        getUsedMemory(baseData).then((res) => {
+            let usedMemory = res.measurements[0].value;
+            let used = (usedMemory/maxMemory).toFixed(4);
+            nextTick(() => {
+                const memoryChart = echarts.init(memoryChartContainerRef.value)
+                memoryChart.setOption(buildOptions(parseFloat(used)))
+            })
+        })
+    })
 
+    let param = {
+        id:data.instanceId
+    }
+    getRegisterNum(param).then((res)=>{
+        serviceUsedData.value.registerCount = res.data[0].num
+    })
+    getInvokeNumToday(param).then((res)=>{
+        serviceUsedData.value.todayCount = res.data
+    })
+    getHttpServerReqs(baseData).then((res)=>{
+        let measurements = res.measurements;
+        for(let it of measurements){
+            if(it.statistic.toUpperCase()=="COUNT"){
+                serviceUsedData.value.aveCount = calculateAverageDailyCallCount(data.createTime,it.value)
+                break;
+            }
+        }
     })
 }
-async function initInterfaceList() {
-    let para = {
-    page:1,
-    limit:9999999,
-    mayApply:'发布'
-}
-getMayApplyInterfaceList(para).then((res) => {
-    interfaceList.value = []
-    for (let it of res.data) {
-        let item = {
-            label: it.interfaceName+"-"+it.version,
-            value: it.id
-        }
-        interfaceList.value.push(item)
+// 计算平均每天调用次数
+const calculateAverageDailyCallCount = (registrationDate,totalCallCount) => {
+    const now = new Date();
+    const registrationDateObj = new Date(registrationDate);
+    const daysSinceRegistration = (now - registrationDateObj) / (1000 * 60 * 60 * 24);
+    if(daysSinceRegistration<1){
+        return totalCallCount;
     }
+    const averageDailyCallCount = totalCallCount / daysSinceRegistration;
+    return averageDailyCallCount.toFixed(2); // 保留两位小数
+};
 
-    for(let it of ruleFormConfig.value.itemList){
-        if(it.prop=='interfaceIds'){
-            it.props.options = interfaceList.value
+function Pie() {
+  let dataArr = [];
+  for (var i = 0; i < 150; i++) {
+      if (i % 2 === 0) {
+          dataArr.push({
+              name: (i + 1).toString(),
+              value: 50,
+              itemStyle: {
+                  normal: {
+                      color: "#00AFFF",
+                      borderWidth: 0,
+                      borderColor: "rgba(0,0,0,0)",
+                  }
+              }
+          })
+      } else {
+          dataArr.push({
+              name: (i + 1).toString(),
+              value: 100,
+              itemStyle: {
+                  normal: {
+                      color: "rgba(0,0,0,0)",
+                      borderWidth: 0,
+                      borderColor: "rgba(0,0,0,0)"
+                  }
+              }
+          })
+      }
+  }
+  return dataArr
+}
+function buildOptions(usedData){
+    let options = {
+    backgroundColor: 'transparent', // 画布背景色
+    series: [
+      {
+        // value: 50, //  内容 配合formatter
+        type: 'liquidFill',
+        radius: '70%', // 控制中间圆球的尺寸（此处可以理解为距离外圈圆的距离控制）
+        center: ['50%', '50%'],
+        data: [usedData, {
+          value: usedData,
+          direction: 'left', //波浪方向
+        }], // data个数代表波浪数
+        backgroundStyle: {
+          borderWidth: 1,
+          color: 'rgba(62, 208, 255, 1)' // 球体本景色
+        },
+        amplitude: '6  %',//波浪的振幅
+        // 修改波浪颜色
+        // color: ['#0286ea', 'l#0b99ff'], // 每个波浪不同颜色，颜色数组长度为对应的波浪个数
+        color: [{
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            {
+              offset: 1,
+              color: '#6CDEFC',
+            },
+            {
+              offset: 0,
+              color: '#429BF7',
+            },
+          ],
+          globalCoord: false,
+        },
+        ],
+        label: {
+          normal: {
+            formatter: (usedData * 100).toFixed(2)+'%',
+            //  formatter: function(params){
+            //     return params.value* 100 + " \n%";
+            // },
+            rich: {
+              d: {
+                fontSize: 20,
+              }
+            },
+            textStyle: {
+              fontSize: 32,
+              color: '#fff'
+            }
+          },
+ 
+        },
+        outline: {
+          show: false
         }
-    }
-})
+      },
+      {
+        type: 'pie',
+        z: 1,
+        center: ['50%', '50%'],
+        radius: ['72%', '73.5%'], // 控制外圈圆的粗细
+        hoverAnimation: false,
+        data: [
+          {
+            name: '',
+            value: 500,
+            labelLine: {
+              show: false
+            },
+            itemStyle: {
+              color: '#00AFFF'
+            },
+            emphasis: {
+              labelLine: {
+                show: false
+              },
+              itemStyle: {
+                color: '#00AFFF'
+              }
+            }
+          }
+        ]
+      },
+      { //外发光
+        type: 'pie',
+        z: 1,
+        zlevel: -1,
+        radius: ['70%', '90.5%'],
+        center: ["50%", "50%"],
+        hoverAnimation: false,
+        clockWise: false,
+        itemStyle: {
+          normal: {
+            borderWidth: 20,
+            color: 'rgba(224,242,255,1)',
+          }
+        },
+        label: {
+          show: false
+        },
+        data: [100]
+      },
+      { //底层外发光
+        type: 'pie',
+        z:1,
+        zlevel: -2,
+        radius: ['70%', '100%'],
+        center: ["50%", "50%"],
+        hoverAnimation: false,
+        clockWise: false,
+        itemStyle: {
+          normal: {
+            borderWidth: 20,
+            color: 'rgba(224,242,255,.4)',
+          }
+        },
+        label: {
+          show: false
+        },
+        data: [100]
+      },
+      // 虚点
+      {
+        type: 'pie',
+        zlevel: 0,
+        silent: true,
+        radius: ['78%', '80%'],
+        z: 1,
+        label: {
+            normal: {
+                show: false
+            },
+        },
+        labelLine: {
+            normal: {
+                show: false
+            }
+        },
+        data: Pie()
+    },
+    ]
+  }
+  return options
 }
 </script>
 <style>
@@ -523,5 +769,100 @@ getMayApplyInterfaceList(para).then((res) => {
 
 .operate {
     cursor: pointer;
+}
+</style>
+<style scoped>
+.box-card {
+  border-radius: 4px;
+  border: 1px solid var(--el-border-color-lighter);
+}
+:deep(.el-card__header) {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+    background-color: var(--el-bg-color);
+}
+
+:deep(.el-card__body) {
+    height: 130px !important;
+    padding: 0px 15px 15px 15px !important;
+}
+.overview-content {
+  height: calc(100% - 21px);
+  display: flex;
+  padding: 0px 20px;
+
+  .stat-items {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+
+    .stat-item {
+      text-align: center;
+      min-width: 80px;
+
+      h2 {
+        font-size: 45px;
+        color: var(--el-color-primary);
+        margin-bottom: 6px;
+        font-family: yjsz;
+        font-weight: 400;
+        margin-top: 0px;
+      }
+
+      span {
+        font-size: 14px;
+        color: #666;
+      }
+    }
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  border-bottom: 1px solid #ebeef5;
+  white-space: nowrap;
+
+  span {
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  :deep(.el-pagination) {
+    margin: 0;
+    padding: 0;
+
+    .el-pagination__jump {
+      display: none;
+    }
+
+    .btn-prev,
+    .btn-next {
+      min-width: 22px;
+      height: 22px;
+    }
+
+    .el-pager {
+      li {
+        min-width: 22px;
+        height: 22px;
+        line-height: 22px;
+      }
+    }
+  }
+}
+.labelTitle{
+    text-align: center;
+    display: flex; justify-content: center;
+    span {
+        font-size: 16px;
+        color: #666;
+      }
+}
+.bottomArea{
+    margin-top: 10px;
 }
 </style>

@@ -183,7 +183,7 @@ import { computed, h, ref, inject } from 'vue';
 import { useSettingStore } from '@/store/modules/settingStore';
 import { useI18n } from 'vue-i18n';
 import { $validCheck } from '@/utils/validate'
-import {saveUpdateVersionInfo,saveInterfaceInfo,getInterfaceId,getInterfaceInfoById} from '@/api/interface/interface'
+import {saveUpdateVersionInfo,saveInterfaceInfo,getInterfaceId,getInterfaceInfoById,getRegisterNum} from '@/api/interface/interface'
 import {getListByType,getListByPid} from '@/api/systemidentifier/systemidentifier'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import interfaceAuth from '@/views/auth/interfaceAuth.vue';
@@ -191,6 +191,8 @@ import parameter from '../parameter/parameterTable.vue';
 import { useRoute } from 'vue-router';
 import { nextTick } from 'vue';
 
+//部署实例信息
+const exceuteInstanceInfo = ref([])
 // 注入 字体对象
 const fontSizeObj: any = inject('sizeObjInfo');
 const loading = ref(false)
@@ -739,7 +741,8 @@ let ruleFormConfig = ref({
         ],
         illustrate:[{required:true,message:computed(()=> t('接口描述不能为空')),trigger:'blur'}],
         systemId:[{required:true,message:computed(()=> t('接口归属系统不能为空')),trigger:'blur'}],
-        deptId:[{required:true,message:computed(()=> t('接口负责人单位不能为空')),trigger:'blur'}]
+        deptId:[{required:true,message:computed(()=> t('接口负责人单位不能为空')),trigger:'blur'}],
+        executeInstanceId:[{required:true,message:computed(()=> t('部署实例不能为空')),trigger:'blur'}]
     },
     itemList: [
         {
@@ -842,6 +845,14 @@ let ruleFormConfig = ref({
             prop: 'isLimitData',
             props:{
                 slotName: "isLimitData"
+            }
+        },
+        {
+            type: 'select',
+            label: computed(() => t('部署实例')),
+            prop: 'executeInstanceId',
+            props: {
+                options: []
             }
         },
         {
@@ -1154,6 +1165,15 @@ async function addDialog(){
     ruleFormConfig.value.model.id = res.data
     discardInterfaceId.value = res.data
     interfaceId.value = res.data
+    let resExecute = await getRegisterNum()
+    //let executeTable = analysisData(resExecute)
+    for(let it of resExecute.data){
+        let item = {
+            label: computed(() => t("实例ID:" + it.instanceId + "    已注册接口数："+it.num)), value: it.instanceId
+        }
+        exceuteInstanceInfo.value.push(item)
+
+    }
     for(let it of ruleFormConfig.value.itemList){
         if(it.props==undefined){
             it.props = {
@@ -1161,6 +1181,9 @@ async function addDialog(){
             }
         }else{
             it.props.disabled = false
+        }
+        if(it.prop=="executeInstanceId"){
+            it.props.options = exceuteInstanceInfo.value;
         }
     }
     analysisYableData('[]',false)
@@ -1614,6 +1637,32 @@ getListByType(selectParameter).then((res) => {
         deptList.value.push(item)
     }
 })
+//解析json数据
+function analysisData(data){
+    //存储需要的列表数据
+    let tableData = []
+    //获取注册应用数据列表
+    let applications = data.applications.application
+    //解析转化为table数据
+    for(let application of applications){
+        let appName = application.name
+        //解析实例
+        for(let instance of application.instance){
+            let instanceData = {
+                name: appName,
+                instanceId: instance.instanceId,
+                hostName:instance.hostName,
+                ip: instance.ipAddr,
+                port: instance.port["$"],
+                status: instance.status,
+                createTime: instance.leaseInfo.registrationTimestamp,
+                baseUrl: instance.healthCheckUrl.slice(0,-6)
+            }
+            tableData.push(instanceData)
+        }
+    }
+    return tableData
+}
 defineExpose({addDialog,edit,view,updateVersion})
 </script>
 <style scoped>

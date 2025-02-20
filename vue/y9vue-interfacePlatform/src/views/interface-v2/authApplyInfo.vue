@@ -24,7 +24,7 @@
 import { computed, ref, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import applyInfo from './applyInfo.vue';
-import { getApplyInfoByInterfaceId } from '@/api/interface/interface'
+import { getApplyInfoByInterfaceId,getIpPortByInterfaceId } from '@/api/interface/interface'
 import { downLoadSecret, getApplyInfoById } from '@/api/apply/apply'
 
 // 注入 字体对象
@@ -64,7 +64,9 @@ let ruleFormConfig = ref({
     model: {
         interfaceId: props.interfaceId,
         applyStopTime: "",
-        applyTime: ""
+        applyTime: "",
+        ip:"",
+        port:""
     },
     rules: {
         //	表单验证规则。类型：FormRules
@@ -90,6 +92,22 @@ let ruleFormConfig = ref({
             label: computed(() => t('用户密钥')),
             props: {
                 slotName: "openAuthDialog"
+            }
+        },
+        {
+            type: 'input',
+            label: computed(() => t('执行端IP')),
+            prop: 'ip',
+            props: {
+                disabled: true,
+            }
+        },
+        {
+            type: 'input',
+            label: computed(() => t('执行端端口')),
+            prop: 'port',
+            props: {
+                disabled: true,
             }
         }
     ],
@@ -121,8 +139,15 @@ function openPubDialog(id, type, name, isAuth) {
         getApplyInfoById(para).then((response) => {
             ruleFormConfig.value.model = response.data
             interfaceId.value = response.data.interfaceId
-            nextTick(() => {
-                applyInfoRef.value.initFormData(response.data)
+            let paraInterfaceId = {
+                id:interfaceId.value
+            }
+            getIpPortByInterfaceId(paraInterfaceId).then((resD)=>{
+                ruleFormConfig.value.model.ip = resD.data.ip;
+                ruleFormConfig.value.model.port = resD.data.port;
+                nextTick(() => {
+                    applyInfoRef.value.initFormData(response.data)
+                })
             })
         })
     }
