@@ -151,7 +151,7 @@
             <artifactId>risenet-y9boot-starter-idGenerator</artifactId>
             <version>v9.6.3-SNAPSHOT</version>
         </dependency>
-      <!--引入tool.jar的替换包-->
+        <!--引入tool.jar的替换包-->
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -183,7 +183,7 @@
         <!--        通用产品版本简易审批-->
         <dependency>
             <groupId>net.risesoft</groupId>
-            <artifactId>risenet-y9boot-webapp-interface-approve</artifactId>
+            <artifactId>risenet-y9boot-support-interface-approve</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -247,6 +247,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
-    </build>
 
+
+    </build>
 </project>
