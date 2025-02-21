@@ -196,5 +196,5 @@ y9:
         opaque:
           client-id: clientid
           client-secret: secret
-          introspection-uri:  https://test.youshengyun.com/sso/oauth2.0/introspect
-          profile-uri:  https://test.youshengyun.com/sso/oauth2.0/profile
+          introspection-uri:  http://localhost:7055/sso/oauth2.0/introspect
+          profile-uri:  http://localhost:7055/sso/oauth2.0/profile
