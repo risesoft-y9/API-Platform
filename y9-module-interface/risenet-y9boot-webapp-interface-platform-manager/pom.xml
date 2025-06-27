@@ -9,7 +9,7 @@
     <parent>
         <groupId>net.risesoft</groupId>
         <artifactId>y9-digitalbase</artifactId>
-        <version>v9.6.8</version>
+        <version>v9.6.9-SNAPSHOT</version>
         <relativePath/>
     </parent>
 
@@ -32,7 +32,7 @@
         <dependency>
             <groupId>net.risesoft</groupId>
             <artifactId>risenet-y9boot-api-feignclient-platform</artifactId>
-            <version>v9.6.8</version>
+            <version>v9.6.9-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -149,7 +149,7 @@
         <dependency>
             <groupId>net.risesoft</groupId>
             <artifactId>risenet-y9boot-starter-idGenerator</artifactId>
-            <version>v9.6.8</version>
+            <version>v9.6.9-SNAPSHOT</version>
         </dependency>
         <!--引入tool.jar的替换包-->
         <dependency>
